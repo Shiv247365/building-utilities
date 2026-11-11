@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Water Audit Queue | Portfolio Review</title>
+<style>__APP_STYLES__</style>
+</head>
+<body>
+<main class="module-main">
+  <header class="module-header">
+    <div><h1>Water Audit Queue</h1><p class="muted">Find which properties to review first, within your team’s capacity.</p></div>
+    <span class="status" id="water-status">Awaiting input</span>
+  </header>
+  <div class="mode-tabs" role="group" aria-label="Water audit mode">
+    <button type="button" id="mode-portfolio" aria-pressed="true">Portfolio audit</button>
+    <button type="button" id="mode-property" aria-pressed="false">Check one property</button>
+  </div>
+  <div id="portfolio-mode">
+  <ol class="workflow" aria-label="Water audit steps">
+    <li id="water-step-input" aria-current="step"><span>1</span>Add property records</li>
+    <li id="water-step-settings"><span>2</span>Set review priorities</li>
+    <li id="water-step-results"><span>3</span>Review and export</li>
+  </ol>
+  <div class="workspace-grid">
+    <aside class="card input-card card-body" aria-labelledby="setup-title">
+      <p class="section-label" id="setup-title">1 · Add property records</p>
+      <div class="upload-area">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg>
+        <h3>Upload annual water records</h3>
+        <p class="muted small">CSV · one row per property · up to 10 MB</p>
+        <button id="upload-water" class="primary" type="button">Upload water CSV</button>
+        <input id="csv-file" type="file" accept=".csv,text/csv" aria-label="Water CSV file" hidden>
+      </div>
+      <button id="load-demo" type="button" class="sample-button">Try sample portfolio</button>
+      <p class="input-status" id="source-name" aria-live="polite"></p>
+      <p class="error" id="upload-error" role="alert"></p>
+      <details>
+        <summary>CSV format and sample file</summary>
+        <div class="details-content input-guide">
+          <p>Required columns are <code>property_id</code>, <code>floor_area_ft2</code>, <code>occupancy_pct</code>, <code>annual_water_gal</code>, <code>complete_year</code>, <code>estimated_water</code>, and <code>whole_property</code>.</p>
+          <p>Use US gallons and square feet. Use yes or no for the last three columns. The sample contains two records with quality issues for demonstration.</p>
+          <button id="sample-csv" class="text-button" type="button">Download sample CSV ↓</button>
+        </div>
+      </details>
+      <fieldset id="review-settings" class="control-separator stack" disabled>
+        <legend class="section-label">2 · Set review priorities</legend>
+        <div>
+          <div class="field-row"><label for="budget">Properties to review</label><output class="value-chip" id="budget-label" for="budget">10%</output></div>
+          <input id="budget" type="range" min="1" max="100" value="10" aria-describedby="capacity-help">
+          <p class="small muted" id="capacity-help">Choose the share of eligible properties your team can check.</p>
+        </div>
+        <div><label class="block" for="policy">Prioritize by</label><select id="policy" aria-describedby="policy-help"></select></div>
+        <p class="small muted" id="policy-help"></p>
+      </fieldset>
+    </aside>
+    <div class="stack">
+      <section class="card" aria-labelledby="queue-title">
+        <div class="card-header">
+          <div><h2 id="queue-title">Review shortlist</h2><p class="small muted" id="queue-summary" aria-live="polite">Your results appear here after adding records.</p></div>
+          <button id="export" type="button" class="primary" disabled>Export CSV</button>
+        </div>
+        <dl class="stats portfolio-stats" id="stats" hidden></dl>
+        <div class="empty-state" id="water-empty">
+          <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h12M8 12h12M8 18h12M3 6h1M3 12h1M3 18h1"/></svg></div>
+          <h3 id="water-empty-title">Add records to create your shortlist</h3>
+          <p id="water-empty-help">Upload a CSV or choose Try sample portfolio to explore the tool.</p>
+        </div>
+        <div id="water-results" class="queue-body" hidden>
+          <div class="actions queue-tools"><label class="small"><input type="checkbox" id="shortlist" checked> Shortlist only</label><label for="search" class="small">Find property</label><input type="search" id="search" placeholder="Property ID"></div>
+          <div class="tablewrap" role="region" aria-label="Property ranking table" tabindex="0"><table>
+            <thead><tr><th scope="col">Priority</th><th scope="col">Property</th><th scope="col">Reported use<br><span class="muted">gal/ft²/year</span></th><th scope="col">Expected use<br><span class="muted">gal/ft²/year</span></th><th scope="col">Times expected</th><th scope="col">Gallons above expected</th><th scope="col">Next-year score<br><span class="muted">0–100</span></th></tr></thead>
+            <tbody id="queue-table"></tbody>
+          </table></div>
+          <p class="table-note" id="score-heading"></p>
+          <p class="table-note">Select a property to see why it was ranked and what to check.</p>
+          <div class="actions queue-tools small" id="pagination" hidden><button type="button" id="prev">Previous</button><button type="button" id="next">Next</button><span class="muted" id="page-status"></span></div>
+          <p class="table-note" id="queue-empty" hidden>No properties match this view.</p>
+          <div class="detail" id="property-detail" aria-live="polite" hidden></div>
+          <p class="table-note" id="comparison-summary"></p>
+        </div>
+      </section>
+      <details class="card" id="quality-panel" open hidden>
+        <summary id="quality-title">Data checks <span id="quality-count"></span></summary>
+        <div class="stack details-content">
+          <div class="actions"><p class="small muted" id="quality-summary"></p><button type="button" id="export-quality">Export checks</button></div>
+          <div class="tablewrap"><table><thead><tr><th scope="col">CSV row</th><th scope="col">Property</th><th scope="col">Action needed</th></tr></thead><tbody id="quality-table"></tbody></table></div>
+        </div>
+      </details>
+    </div>
+  </div>
+  <details class="evidence" open>
+    <summary id="evidence-title">Method comparison and validation results</summary>
+    <div class="stack details-content">
+      <p class="small muted" id="test-scope"></p>
+      <div class="actions"><label for="study-budget" class="small">Study budget</label><select id="study-budget"><option value="0">5%</option><option value="1" selected>10%</option><option value="2">20%</option></select><label for="study-metric" class="small">Outcome</label><select id="study-metric"><option value="precision">Elevated reports per review</option><option value="recall">Share of elevated reports found</option><option value="volumeCapture">Share of future gallons above cutoff</option></select></div>
+      <div class="chart" id="study-chart"></div>
+      <p class="small muted" id="study-explanation"></p>
+    </div>
+  </details>
+  </div>
+  <section id="property-mode" aria-label="Single-property water check" hidden>
+    <iframe id="property-frame" class="module-frame" title="Single-property water comparison"></iframe>
+  </section>
+  <footer class="module-footer"><span>Benchmark scope · NYC multifamily properties</span><a href="https://data.cityofnewyork.us/Environment/NYC-Building-Energy-and-Water-Data-Disclosure-for-/5zyy-y8am/about_data">Dataset and field definitions ↗</a></footer>
+</main>
+
+<script type="application/json" id="portfolio-data">__PORTFOLIO_DATA__</script>
+<script type="application/json" id="property-document">__PROPERTY_DOCUMENT__</script>
+<script>
+'use strict';
+const study = JSON.parse(document.getElementById('portfolio-data').textContent);
+const el = id => document.getElementById(id);
+const fmt = (value, digits=0) => new Intl.NumberFormat('en-US', {maximumFractionDigits:digits}).format(value);
+const percent = value => `${fmt(100 * value, 1)}%`;
+const columns = ['property_id','floor_area_ft2','occupancy_pct','annual_water_gal','complete_year','estimated_water','whole_property'];
+const policyLabels = ['Highest use per square foot', 'Most above expected (ratio)', 'Most gallons above expected', 'Highest next-year model score'];
+const policyHelp = ['Sort by annual use per square foot.', '2× means twice the expected use for the property’s size and occupancy.', 'Sort by gallons above expected. Larger properties may rank higher here.', 'Sort by the model’s score for high water use the following year.'];
+const collator = new Intl.Collator('en-US', {numeric:true});
+const pageSize = 15;
+let records = [], issues = [], ranking = [], selected = new Set(), activeId = '', page = 0;
+let hasInput = false;
+
+function append(parent, tag, text, className='') {
+  const child = document.createElement(tag);
+  child.textContent = text;
+  if (className) child.className = className;
+  parent.append(child);
+  return child;
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', quoted = false, closed = false;
+  const addField = () => { row.push(field); field = ''; closed = false; };
+  const addRow = () => { addField(); rows.push(row); row = []; };
+  for (let i=0; i<text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (c === '"') { quoted = false; closed = true; }
+      else field += c;
+    } else if (c === ',') addField();
+    else if (c === '\n' || c === '\r') {
+      addRow();
+      if (c === '\r' && text[i+1] === '\n') i++;
+    } else if (c === '"' && field === '' && !closed) quoted = true;
+    else if (c === '"' || closed) throw new Error('Check the quoting in the CSV file.');
+    else field += c;
+  }
+  if (quoted) throw new Error('A quoted CSV field is missing its closing quote.');
+  if (row.length || field || closed) addRow();
+  const header = rows.shift()?.map(value => value.trim().toLowerCase()) ?? [];
+  if (new Set(header).size !== header.length || columns.some(name => !header.includes(name))) {
+    throw new Error('The CSV must include each required column once. Download the example for the headers.');
+  }
+  const mapped = [];
+  for (const [index, values] of rows.entries()) {
+    if (values.every(value => !value.trim())) continue;
+    const record = Object.fromEntries(columns.map(name => [name, values[header.indexOf(name)]?.trim() ?? '']));
+    mapped.push({...record, rowNumber:index+2, invalidWidth:values.length !== header.length});
+  }
+  if (!mapped.length) throw new Error('The CSV has headers but no property rows.');
+  return mapped;
+}
+
+function measure(row) {
+  const area = Number(row.floor_area_ft2), occupancy = Number(row.occupancy_pct), gallons = Number(row.annual_water_gal);
+  const [intercept, logArea, occupancyFraction] = study.peerCoefficients;
+  const expected = Math.exp(intercept + logArea * Math.log(area) + occupancyFraction * occupancy / 100);
+  const intensity = gallons / area, ratio = intensity / expected;
+  const volume = Math.max(gallons - expected * area, 0);
+  const inputs = [Math.log(ratio), Math.log(area), occupancy / 100];
+  const riskLogit = inputs.reduce((sum,value,index) => sum + study.risk.weights[index+1] * (value-study.risk.center[index]) / study.risk.scale[index], study.risk.weights[0]);
+  const risk = 1 / (1 + Math.exp(-Math.max(-50, Math.min(50, riskLogit))));
+  return {id:String(row.property_id).trim(), area, gallons, occupancy, scores:[intensity, ratio, volume, risk], expected};
+}
+
+function loadRows(rows, name, isSample = false) {
+  const idCounts = new Map();
+  for (const row of rows) {
+    const id = String(row.property_id).trim();
+    if (id) idCounts.set(id,(idCounts.get(id) ?? 0)+1);
+  }
+  records = []; issues = [];
+  const yes = value => String(value).trim().toLowerCase() === 'yes';
+  const no = value => String(value).trim().toLowerCase() === 'no';
+  for (const [index,row] of rows.entries()) {
+    const id = String(row.property_id).trim(), reasons = [];
+    if (!id) reasons.push('Missing property ID');
+    if (idCounts.get(id)>1) reasons.push('Duplicate property ID');
+    if (row.invalidWidth) reasons.push('Wrong number of CSV fields');
+    const values = [row.floor_area_ft2,row.occupancy_pct,row.annual_water_gal].map(Number);
+    if (values.some(value => !Number.isFinite(value) || value<=0) || values[1]>100) reasons.push('Check area, occupancy and annual gallons');
+    if (!yes(row.complete_year)) reasons.push('Full-year coverage needs confirmation');
+    if (!no(row.estimated_water)) reasons.push('Measured reading needs confirmation');
+    if (!yes(row.whole_property)) reasons.push('Whole-property coverage needs confirmation');
+    if (!reasons.length) {
+      const candidate = measure(row);
+      if ([candidate.expected,...candidate.scores].every(Number.isFinite) && candidate.expected>0 && candidate.scores[1]>0) records.push(candidate);
+      else reasons.push('Values are outside the numeric range of the benchmark');
+    }
+    if (reasons.length) issues.push({id, line:row.rowNumber ?? index+2, reasons});
+  }
+  hasInput = true;
+  el('source-name').textContent = `${name} · ${fmt(rows.length)} records received`;
+  el('water-status').textContent = isSample ? 'Sample data' : 'CSV loaded';
+  el('water-status').setAttribute('data-ready', 'true');
+  el('upload-error').textContent = '';
+  el('search').value = '';
+  el('shortlist').checked = true;
+  activeId = ''; page = 0;
+  refreshRanking();
+  renderQuality();
+}
+
+function rank(policy) {
+  return [...records].sort((a,b) => b.scores[policy]-a.scores[policy] || collator.compare(a.id,b.id) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+function refreshRanking() {
+  const policy = Number(el('policy').value), budget = Number(el('budget').value);
+  const slots = Math.ceil(records.length*budget/100);
+  ranking = rank(policy);
+  selected = new Set(ranking.slice(0,slots).map(row=>row.id));
+  const swaps = rank(0).slice(0,slots).filter(row=>!selected.has(row.id)).length;
+  el('budget-label').textContent = `${budget}%`;
+  el('review-settings').disabled = records.length === 0;
+  el('water-results').hidden = records.length === 0;
+  el('stats').hidden = !hasInput;
+  el('water-empty').hidden = records.length > 0;
+  el('water-empty-title').textContent = hasInput ? 'No records are ready to rank' : 'Add records to create your shortlist';
+  el('water-empty-help').textContent = hasInput
+    ? 'Open Data checks below, correct the records, and upload the CSV again.'
+    : 'Upload a CSV or choose Try sample portfolio to explore the tool.';
+  el('policy-help').textContent = policyHelp[policy];
+  el('queue-summary').textContent = hasInput
+    ? `${fmt(slots)} selected · ${fmt(records.length)} eligible properties`
+    : 'Your results appear here after adding records.';
+  const steps = ['water-step-input', 'water-step-settings', 'water-step-results'];
+  const currentStep = records.length ? 2 : 0;
+  for (const [index, id] of steps.entries()) {
+    el(id).setAttribute('data-complete', String(index < currentStep));
+    if (index === currentStep) el(id).setAttribute('aria-current', 'step');
+    else el(id).removeAttribute('aria-current');
+  }
+  el('score-heading').textContent = `Sorted by ${policyLabels[policy].toLowerCase()}.`;
+  el('comparison-summary').textContent = slots && policy !== 0
+    ? `${fmt(swaps)} of ${fmt(slots)} choices differ from ranking by use per square foot.`
+    : (slots ? 'Ranked by annual water use per square foot.' : 'Check the records below before ranking properties.');
+  el('stats').replaceChildren();
+  for (const [label,value] of [['Ready to rank',records.length],['Selected for review',slots],['Records to check',issues.length],['High use this year',records.filter(row=>row.scores[1]>study.threshold).length]]) {
+    const item = append(el('stats'),'div',''); append(item,'dt',label); append(item,'dd',fmt(value));
+  }
+  el('export').disabled = slots===0;
+  renderQueue();
+}
+
+function renderQueue() {
+  const search = el('search').value.trim().toLowerCase();
+  const shortlistOnly = el('shortlist').checked;
+  const rows = ranking.map((item,index)=>({item,rank:index+1})).filter(({item})=>item.id.toLowerCase().includes(search) && (!shortlistOnly || selected.has(item.id)));
+  const last = Math.max(0,Math.ceil(rows.length/pageSize)-1);
+  page = Math.min(page,last);
+  const currentPage = rows.slice(page*pageSize,(page+1)*pageSize);
+  if (!currentPage.some(({item})=>item.id===activeId)) activeId = currentPage[0]?.item.id ?? '';
+  const table = el('queue-table'); table.replaceChildren();
+  for (const {item,rank:position} of currentPage) {
+    const queued = !shortlistOnly && selected.has(item.id);
+    const tr = append(table,'tr','',queued ? 'queued' : '');
+    append(tr,'td',queued ? `${position} · Review` : String(position));
+    const button = append(append(tr,'td',''),'button',item.id);
+    button.type = 'button';
+    button.ariaLabel = `Water-use details for ${item.id}`;
+    button.addEventListener('click',()=>{
+      activeId = activeId === item.id ? '' : item.id;
+      renderDetail();
+    });
+    const [intensity,ratio,gallons,risk] = item.scores;
+    const values = [fmt(intensity,1), fmt(item.expected,1), `${fmt(ratio,2)}×`, fmt(gallons), fmt(risk*100,1)];
+    for (const value of values) append(tr,'td',value);
+  }
+  el('pagination').hidden = last === 0;
+  el('queue-empty').hidden = rows.length > 0;
+  el('prev').disabled = page===0;
+  el('next').disabled = page===last;
+  el('page-status').textContent = rows.length ? `Page ${page+1} of ${last+1} · ${fmt(rows.length)} properties` : 'No matching properties in this view.';
+  renderDetail();
+}
+
+function renderDetail() {
+  const box = el('property-detail'), row = ranking.find(item=>item.id===activeId);
+  box.replaceChildren();
+  box.hidden = !row;
+  if (!row) return;
+  const [intensity,ratio,gallons,risk] = row.scores;
+  append(box,'h3',`${row.id} · ${selected.has(row.id) ? 'On shortlist' : 'Outside current shortlist'}`);
+  append(box,'p',`${fmt(row.gallons)} gallons used in the year. Expected use for ${fmt(row.area)} ft² and ${fmt(row.occupancy,1)}% occupancy is ${fmt(row.expected*row.area)} gallons.`);
+  append(box,'p',`Reported use is ${fmt(ratio,2)}× expected${gallons>0 ? `, a difference of ${fmt(gallons)} gallons` : ''}. The study flags high use above ${fmt(study.threshold,2)}× expected.`);
+  append(box,'p','Check that the floor area and meters cover the same property, then look for changes in the bills.');
+  const details = append(box,'details','');
+  append(details,'summary','All ranking scores');
+  append(details,'p',`Used ${fmt(intensity,1)} gal/ft². Expected ${fmt(row.expected,1)} gal/ft². ${fmt(ratio,2)}× expected. ${fmt(gallons)} gallons above expected. Next-year score ${fmt(risk*100,1)} out of 100.`);
+  if (row.area<study.areaReference[0] || row.area>study.areaReference[1]) append(box,'p','The area falls outside the central 98% of the benchmark fitting records.','quality');
+}
+
+function renderQuality() {
+  const table = el('quality-table'); table.replaceChildren();
+  el('quality-panel').hidden = !hasInput;
+  if (hasInput && !records.length) el('quality-panel').open = true;
+  el('quality-count').textContent = `(${fmt(issues.length)})`;
+  el('quality-summary').textContent = issues.length ? `Showing ${Math.min(issues.length,25)} of ${fmt(issues.length)} records that need checking before they can be ranked.` : 'Every record in this portfolio passed the data checks.';
+  el('export-quality').disabled = issues.length===0;
+  for (const issue of issues.slice(0,25)) {
+    const tr = append(table,'tr','');
+    for (const value of [String(issue.line),issue.id || '—',issue.reasons.join(' · ')]) append(tr,'td',value);
+  }
+}
+
+function showWaterMode(property) {
+  el('portfolio-mode').hidden = property;
+  el('property-mode').hidden = !property;
+  el('water-status').hidden = property;
+  el('mode-portfolio').setAttribute('aria-pressed', String(!property));
+  el('mode-property').setAttribute('aria-pressed', String(property));
+  if (property && !el('property-frame').hasAttribute('srcdoc')) {
+    el('property-frame').srcdoc = JSON.parse(el('property-document').textContent);
+  }
+}
+
+el('mode-portfolio').addEventListener('click', () => showWaterMode(false));
+el('mode-property').addEventListener('click', () => showWaterMode(true));
+el('property-frame').addEventListener('load', () => {
+  const frame = el('property-frame');
+  const content = frame.contentDocument?.querySelector('main');
+  if (!content) return;
+  const resize = () => {
+    if (!el('property-mode').hidden) frame.style.height = `${Math.ceil(content.getBoundingClientRect().height)}px`;
+  };
+  new ResizeObserver(resize).observe(content);
+  resize();
+});
+
+function csvCell(value) {
+  let text = String(value);
+  if (typeof value==='string' && /^[\s]*[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"','""')}"`;
+}
+
+function downloadCSV(name, header, rows) {
+  const content = [header,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));
+  const link = document.createElement('a'); link.href=url; link.download=name; link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function renderEvidence() {
+  const metrics = study.results[Number(el('study-budget').value)], metric = el('study-metric').value;
+  const chart = el('study-chart'); chart.replaceChildren();
+  for (const [index, result] of metrics.entries()) {
+    const row = append(chart,'div','',index===study.defaultPolicy ? 'barrow default' : 'barrow');
+    append(row,'span',study.policies[index]);
+    const bar = append(append(row,'div','','track'),'span','','bar'); bar.style.width = `${100*result[metric]}%`;
+    append(row,'span',percent(result[metric]),'bar-value');
+  }
+  const message = {precision:'Share of selected properties with elevated 2024 use.',recall:'Share of all elevated 2024 reports found in the shortlist.',volumeCapture:'Share of observed 2024 gallons above the elevated-use cutoff represented by the shortlist.'};
+  el('study-explanation').textContent = `${metrics[0].slots} review slots for each policy. ${message[metric]}`;
+}
+
+for (const [index,name] of policyLabels.entries()) append(el('policy'),'option',name).value=String(index);
+el('policy').value = String(study.defaultPolicy);
+el('policy').addEventListener('change',()=>{page=0;refreshRanking();});
+el('budget').addEventListener('input',()=>{page=0;refreshRanking();});
+for (const [id,event] of [['search','input'],['shortlist','change']]) el(id).addEventListener(event,()=>{page=0;renderQueue();});
+el('prev').addEventListener('click',()=>{page=Math.max(0,page-1);renderQueue();});
+el('next').addEventListener('click',()=>{page++;renderQueue();});
+el('upload-water').addEventListener('click', () => el('csv-file').click());
+el('load-demo').addEventListener('click',()=>{el('csv-file').value='';loadRows(study.examples,'Sample portfolio (2023)', true);});
+el('csv-file').addEventListener('change',async event=>{
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    if (file.size>10_000_000) throw new Error('Use a CSV of 10 MB or less.');
+    const text = await file.text();
+    if (event.target.files?.[0]!==file) return;
+    loadRows(parseCSV(text.replace(/^\uFEFF/,'')),file.name);
+  } catch (error) {
+    if (event.target.files?.[0] === file) {
+      el('upload-error').textContent = `${file.name} could not be loaded. ${error.message}`;
+    }
+  }
+});
+el('sample-csv').addEventListener('click',()=>downloadCSV('water_audit_example.csv',columns,study.examples.map(row=>columns.map(name=>row[name]))));
+el('export-quality').addEventListener('click',()=>downloadCSV('water_audit_data_checks.csv',['csv_record','property_id','checks'],issues.map(issue=>[issue.line,issue.id,issue.reasons.join(' | ')])));
+el('export').addEventListener('click',()=>{
+  const name = study.policies[Number(el('policy').value)];
+  const rows = ranking.filter(row=>selected.has(row.id)).map((row,index)=>[index+1,row.id,name,row.area,row.occupancy,row.gallons,row.scores[0],row.expected,row.scores[1],row.scores[2],row.scores[3]]);
+  downloadCSV('water_audit_shortlist.csv',['rank','property_id','policy','area_ft2','occupancy_pct','reported_gallons','observed_gal_ft2','expected_gal_ft2','peer_ratio','gallons_above_expected','risk_score_0_to_1'],rows);
+});
+for (const id of ['study-budget','study-metric']) el(id).addEventListener('change',renderEvidence);
+el('test-scope').textContent = `${fmt(study.test.size)} properties across ${fmt(study.test.groups)} held-out groups had eligible follow-up. ${fmt(study.test.elevated)} reported more than ${fmt(study.threshold,2)}× expected use in 2024.`;
+el('source-name').textContent = 'No file selected';
+refreshRanking();
+renderQuality();
+renderEvidence();
+</script>
+</body>
+</html>

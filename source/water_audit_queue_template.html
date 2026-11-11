@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water Audit Queue | CE 663</title>
+<style>
+  :root { color-scheme: light; --ink:#142b38; --muted:#465c66; --line:#ccdadd; --paper:#f3f7f6; --teal:#075e58; --aqua:#d6eee9; }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.5 system-ui,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:34px 24px 46px; }
+  h1,h2,p { margin:0; }
+  h1 { font-size:clamp(2.25rem,6vw,4.25rem); line-height:1.05; letter-spacing:-.065em; margin:.25rem 0 .65rem; }
+  h2 { font-size:1.28rem; letter-spacing:-.025em; }
+  header { padding:26px 0 24px; border-top:4px solid var(--teal); }
+  .eyebrow { color:var(--teal); text-transform:uppercase; font-weight:750; letter-spacing:.12em; font-size:.72rem; }
+  .lede { color:var(--muted); max-width:62ch; }
+  .layout { display:grid; grid-template-columns:minmax(285px, .83fr) minmax(0, 1.17fr); gap:18px; }
+  .card { background:white; border:1px solid var(--line); border-radius:13px; padding:21px; min-width:0; }
+  label,legend { font-weight:650; }
+  label { display:block; margin-top:12px; }
+  label span { font-size:.84rem; color:var(--muted); font-weight:500; }
+  input[type=number],select { width:100%; margin-top:5px; padding:8px 10px; border:1px solid #879ba0; border-radius:6px; color:var(--ink); background:white; font:inherit; }
+  .check { display:flex; align-items:flex-start; gap:8px; font-size:.9rem; line-height:1.35; margin-top:16px; }
+  .check input { margin-top:3px; accent-color:var(--teal); }
+  button { font:inherit; font-weight:650; color:var(--teal); background:white; border:1px solid #85a9a3; border-radius:6px; padding:6px 10px; cursor:pointer; }
+  button:hover { background:var(--aqua); }
+  button[type=submit] { margin-top:16px; width:100%; padding:10px; color:white; background:var(--teal); border-color:var(--teal); }
+  :focus-visible { outline:3px solid #b45309; outline-offset:3px; }
+  .samples { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .samples button { font-size:.83rem; }
+  .note { color:var(--muted); font-size:.88rem; }
+  .issue { margin-top:8px; color:#9c3524; }
+  .status { display:inline-block; margin:10px 0 12px; padding:4px 9px; border-radius:4px; background:var(--aqua); color:#064843; font-weight:750; }
+  .status.high { background:#fff0d3; color:#754012; }
+  .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 16px; }
+  .metrics div { border-top:1px solid var(--line); padding-top:7px; }
+  dt { color:var(--muted); font-size:.8rem; }
+  dd { margin:0; font-weight:750; font-size:clamp(1rem,2.25vw,1.5rem); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+  #plot { display:block; width:100%; height:auto; background:#f6f9f8; border-radius:8px; margin:8px 0 12px; }
+  #next-action { margin-top:11px; font-size:.91rem; }
+  #extrapolation { margin-top:9px; }
+  .evidence { margin-top:18px; }
+  .table-wrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; margin:8px 0; }
+  th,td { padding:7px 9px; border-bottom:1px solid var(--line); text-align:left; }
+  th { font-size:.82rem; color:var(--muted); }
+  .selected td:first-child { color:var(--teal); font-weight:750; }
+  footer { color:var(--muted); margin-top:18px; font-size:.88rem; }
+  a { color:var(--teal); }
+  @media (max-width:760px) { main { padding:20px 13px 36px; } .layout { grid-template-columns:1fr; } .card { padding:17px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">CE 663 / Integrated Water Management</p>
+    <h1>Water Audit Queue</h1>
+    <p class="lede">Compare a multifamily property’s annual metered water use with a benchmark fitted to NYC disclosures. Start with a bundled case or enter your own figures.</p>
+  </header>
+  <div class="layout">
+    <section class="card" aria-labelledby="inputs-title">
+      <h2 id="inputs-title">Property inputs</h2>
+      <div class="samples" id="samples" aria-label="Bundled 2023 examples"></div>
+      <form id="water-form">
+        <label for="units">Units</label>
+        <select id="units"><option value="us">US · ft² and gallons</option><option value="metric">Metric · m² and m³</option></select>
+        <label for="area">Gross floor area <span id="area-unit">ft²</span></label>
+        <input id="area" type="number" required min="0.000001" step="any">
+        <label for="occupancy">Occupancy <span>%</span></label>
+        <input id="occupancy" type="number" required min="0.000001" max="100" step="any">
+        <label for="volume">Annual metered water <span id="volume-unit">US gallons</span></label>
+        <input id="volume" type="number" required min="0.000001" step="any">
+        <label class="check" for="complete"><input id="complete" type="checkbox"> <span>I have a full year of measured water use for the same property covered by the floor area.</span></label>
+        <button type="submit">Compare with benchmark</button>
+        <p id="input-error" class="issue" role="alert"></p>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="result-title">
+      <h2 id="result-title">Water-use comparison</h2>
+      <p id="result-prompt" class="note">Enter complete annual readings to see a comparison.</p>
+      <div id="result" hidden aria-live="polite">
+        <p class="status" id="status"></p>
+        <dl class="metrics">
+          <div><dt>Observed</dt><dd id="observed"></dd></div>
+          <div><dt>Expected</dt><dd id="expected"></dd></div>
+          <div><dt>Observed / expected</dt><dd id="ratio"></dd></div>
+        </dl>
+        <p class="note" id="intensity-units"></p>
+        <svg id="plot" viewBox="0 0 540 126" role="img" aria-labelledby="plot-title">
+          <title id="plot-title">Observed water intensity and comparison band</title>
+          <line x1="24" y1="64" x2="516" y2="64" stroke="#aebfc2" stroke-width="2"/>
+          <rect id="range-band" y="51" height="26" rx="5" fill="#b5e3d9"/>
+          <line id="expected-mark" y1="43" y2="84" stroke="#075e58" stroke-width="3"/>
+          <circle id="observed-mark" cy="64" r="7" fill="#ad481e" stroke="white" stroke-width="2"/>
+          <text x="24" y="27" fill="#142b38" font-size="15">■ Comparison band　| Expected　● Observed</text>
+          <text x="24" y="105" fill="#465c66" font-size="15">0</text>
+          <text id="plot-max" x="516" y="105" text-anchor="end" fill="#465c66" font-size="15"></text>
+        </svg>
+        <p class="note" id="band-label"></p>
+        <p id="next-action"></p>
+        <p class="note" id="extrapolation" hidden></p>
+      </div>
+    </section>
+  </div>
+  <section class="card evidence" aria-labelledby="evidence-title">
+    <h2 id="evidence-title">2024 held-out evaluation</h2>
+    <p class="note" id="evaluation-scope"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Method</th><th scope="col">Median absolute error</th><th scope="col">Mean absolute error</th></tr></thead>
+      <tbody id="evaluation-table"></tbody>
+    </table></div>
+    <p class="note" id="calibration"></p>
+  </section>
+  <footer>For NYC multifamily benchmarking. An unusual reading is a prompt to verify the meter and property records. Confirm local performance before using the benchmark at IIT Kanpur. <a href="https://data.cityofnewyork.us/Environment/NYC-Building-Energy-and-Water-Data-Disclosure-for-/5zyy-y8am/about_data">Source data</a></footer>
+</main>
+<script id="study-data" type="application/json">__STUDY_JSON__</script>
+<script>
+  'use strict';
+  const study = JSON.parse(document.getElementById('study-data').textContent);
+  const el = id => document.getElementById(id);
+  const sqftToSqm = 0.09290304;
+  const gallonToCubicMetre = 0.003785411784;
+  const metricIntensity = 1000 * gallonToCubicMetre / sqftToSqm;
+  const number = (value, digits=1) => new Intl.NumberFormat('en-US', {maximumFractionDigits:digits}).format(value);
+  const percent = value => `${number(100 * value)}%`;
+  let previousUnits = 'us';
+
+  function expectedIntensity(area, occupancy) {
+    const { overall, cuts, bandMedians, coefficients } = study.model;
+    if (study.selected === 0) return overall;
+    if (study.selected === 1) return bandMedians[cuts.filter(cut => area > cut).length];
+    const [intercept, logArea, occupancyFraction] = coefficients;
+    return Math.exp(intercept + logArea * Math.log(area) + occupancyFraction * occupancy / 100);
+  }
+
+  function showError(message) {
+    el('input-error').textContent = message;
+    el('result').hidden = true;
+    el('result-prompt').hidden = false;
+  }
+
+  function updateComparison() {
+    const metric = el('units').value === 'metric';
+    const area = el('area').valueAsNumber / (metric ? sqftToSqm : 1);
+    const volume = el('volume').valueAsNumber / (metric ? gallonToCubicMetre : 1);
+    const occupancy = el('occupancy').valueAsNumber;
+    if (![area, volume, occupancy].every(value => Number.isFinite(value) && value > 0) || occupancy > 100) {
+      showError('Enter positive area and water volume, and occupancy above 0% and at most 100%.');
+      return;
+    }
+    if (!el('complete').checked) {
+      showError('Confirm the annual reading and floor area cover the same property before comparing.');
+      return;
+    }
+    const expected = expectedIntensity(area, occupancy);
+    const observed = volume / area;
+    const ratio = observed / expected;
+    const [low, high] = study.band.map(multiplier => multiplier * expected);
+    const scale = metric ? metricIntensity : 1;
+    const axisMax = Math.max(high, observed) * 1.08;
+    if (![expected, observed, ratio, axisMax * scale].every(value => Number.isFinite(value) && value > 0)) {
+      showError('Those values are outside the range this comparison can display. Check the units.');
+      return;
+    }
+    el('input-error').textContent = '';
+    el('result').hidden = false;
+    el('result-prompt').hidden = true;
+    el('observed').textContent = number(observed * scale);
+    el('expected').textContent = number(expected * scale);
+    el('ratio').textContent = `${number(ratio, 2)}×`;
+    el('intensity-units').textContent = metric ? 'Litres per m² per year' : 'US gallons per ft² per year';
+    const status = el('status');
+    status.classList.toggle('high', observed > high);
+    status.textContent = observed > high ? 'Priority review' : observed < low ? 'Below comparison band' : 'Within comparison band';
+    el('next-action').textContent = observed > high
+      ? 'Verify the annual volume, meter coverage and floor-area boundary. If those match, review the underlying bills for unusual changes.'
+      : observed < low
+        ? 'Check whether any meters or months are missing from the reported volume.'
+        : 'Use routine monitoring and compare with the next complete annual reading.';
+    el('band-label').textContent = `2023 comparison band applied to this property: ${number(low * scale)}–${number(high * scale)}.`;
+    const [areaMin, areaMax] = study.model.areaReference;
+    el('extrapolation').hidden = area >= areaMin && area <= areaMax;
+    el('extrapolation').textContent = 'This floor area falls outside the central 98% of the fitting data. Interpret the benchmark cautiously.';
+    const x = value => 24 + 492 * (value / axisMax);
+    el('range-band').setAttribute('x', x(low));
+    el('range-band').setAttribute('width', x(high) - x(low));
+    el('expected-mark').setAttribute('x1', x(expected));
+    el('expected-mark').setAttribute('x2', x(expected));
+    el('observed-mark').setAttribute('cx', x(observed));
+    el('plot-max').textContent = number(axisMax * scale);
+    el('plot-title').textContent = `Observed ${number(observed * scale)}, expected ${number(expected * scale)}, comparison band ${number(low * scale)} to ${number(high * scale)}.`;
+  }
+
+  function showExample(example) {
+    const metric = el('units').value === 'metric';
+    el('area').value = example.area * (metric ? sqftToSqm : 1);
+    el('volume').value = example.gallons * (metric ? gallonToCubicMetre : 1);
+    el('occupancy').value = example.occupancy;
+    el('complete').checked = true;
+    updateComparison();
+  }
+
+  for (const example of study.examples) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = example.label;
+    button.addEventListener('click', () => showExample(example));
+    el('samples').append(button);
+  }
+  el('units').addEventListener('change', () => {
+    const metric = el('units').value === 'metric';
+    if (el('units').value !== previousUnits) {
+      for (const [id, factor] of [['area', sqftToSqm], ['volume', gallonToCubicMetre]]) {
+        if (Number.isFinite(el(id).valueAsNumber)) {
+          el(id).value = Number((el(id).valueAsNumber * (metric ? factor : 1 / factor)).toPrecision(12));
+        }
+      }
+      previousUnits = el('units').value;
+    }
+    el('area-unit').textContent = metric ? 'm²' : 'ft²';
+    el('volume-unit').textContent = metric ? 'm³' : 'US gallons';
+    if (!el('result').hidden) updateComparison();
+  });
+  el('water-form').addEventListener('submit', event => {
+    event.preventDefault();
+    updateComparison();
+  });
+  el('water-form').addEventListener('input', event => {
+    if (event.target.id === 'units') return;
+    el('input-error').textContent = '';
+    el('result').hidden = true;
+    el('result-prompt').hidden = false;
+  });
+
+  const test = study.test;
+  el('evaluation-scope').textContent = `${number(test.properties, 0)} properties across ${number(test.groups, 0)} groups. Errors in US gal/ft²/year. Demo method selected on 2023 validation data.`;
+  for (const [index, method] of study.labels.entries()) {
+    const row = el('evaluation-table').insertRow();
+    if (index === study.selected) row.classList.add('selected');
+    row.insertCell().textContent = index === study.selected ? `${method} · used in demo` : method;
+    row.insertCell().textContent = number(test.medianAE[index], 2);
+    row.insertCell().textContent = number(test.meanAE[index], 2);
+  }
+  el('calibration').textContent = `On the holdout, ${percent(test.coverage)} of readings fell within the comparison band and ${percent(test.reviewRate)} exceeded its upper threshold.`;
+  showExample(study.examples[0]);
+</script>
+</body>
+</html>

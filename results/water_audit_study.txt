@@ -1,0 +1,30 @@
+2022–23 extract SHA-256: a2ff47070d532c78e9d2116cb73682246bd8c8b6c6e76308b741bea5686381cf
+2024 extract SHA-256: b7e9f2348d6656ca66057f0e28f4efe5aec1d207f4498105f56c3aa21cd36a35
+Raw multifamily records by year: {'2022': 19732, '2023': 22219, '2024': 26745}
+
+Frozen split SHA-256: f19cf84a59562a98d3ccda59585afee72aad3d2803603ebe8724e52eb55ca693
+Groups across raw identifier metadata: {'train': 11412, 'test': 3756, 'validation': 3678}
+
+2022–23 exact repeats collapsed: 409
+2022–23 conflicting property-year rows excluded: 368
+2022 initial train: 8,430 properties across 7,823 groups
+2023 validation: 2,549 properties across 2,325 groups
+2022–23 final fit: 13,054 properties across 11,246 groups
+
+                     Method  2023 median abs. error
+             Overall median                   23.89
+           Size-band median                   23.40
+Area + occupancy regression                   22.65
+Selected before 2024 scoring: Area + occupancy regression
+2023 observed-to-expected ratio band: 0.434× to 2.218×
+
+2024 screen: 11,966 eligible properties, 0 exact repeats, 0 conflicting rows
+2024 test: 2,394 properties across 2,160 groups
+Largest test group: 10 properties
+Test properties without a valid building ID or lot in metadata: 1
+                     Method  2023 median AE  2024 median AE  2024 mean AE  Median AE difference 95% interval vs overall
+             Overall median           23.89           23.11         42.21                  0.00               Reference
+           Size-band median           23.40           22.77         41.03                 -0.34           [-1.41, 0.67]
+Area + occupancy regression           22.65           21.22         41.30                 -1.89          [-2.68, -0.81]
+Comparison band coverage: 78.9%
+Sent for review: 11.4%

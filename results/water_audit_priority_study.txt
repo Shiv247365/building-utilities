@@ -1,0 +1,57 @@
+2022–23 extract SHA-256: a2ff47070d532c78e9d2116cb73682246bd8c8b6c6e76308b741bea5686381cf
+2024 extract SHA-256: b7e9f2348d6656ca66057f0e28f4efe5aec1d207f4498105f56c3aa21cd36a35
+Raw multifamily records by year: {'2022': 19732, '2023': 22219, '2024': 26745}
+
+Frozen split SHA-256: f19cf84a59562a98d3ccda59585afee72aad3d2803603ebe8724e52eb55ca693
+Groups across raw identifier metadata: {'train': 11412, 'test': 3756, 'validation': 3678}
+
+2022–23 exact repeats collapsed: 409
+2022–23 conflicting property-year rows excluded: 368
+2022 initial train: 8,430 properties across 7,823 groups
+2023 validation: 2,549 properties across 2,325 groups
+2022–23 final fit: 13,054 properties across 11,246 groups
+
+2022 calibration properties: 2,687
+Elevated-use cutoff: 2.254× expected intensity
+Risk model training transitions: 6,581 in 6,270 groups
+Validation transitions: 2,094 in 2,001 groups
+
+                Policy Validation precision @10%
+    Reported intensity                     65.7%
+   Peer-adjusted ratio                     74.8%
+Gallons above expected                     53.3%
+        Predicted risk                     74.8%
+Demo default frozen on validation: Peer-adjusted ratio
+
+2023 candidates: 2,647; eligible 2024 follow-up: 1,843 (69.6%) in 1,747 groups
+With follow-up: 1,843; 2023 median intensity 53.35; 2023 elevated 10.9%
+Without follow-up: 804; 2023 median intensity 50.93; 2023 elevated 10.3%
+2024 elevated: 197 / 1843 (10.7%)
+2024 elevated if already high in 2023: 79.1%; if below cutoff in 2023: 2.3%
+
+Review capacity 5%
+                        slots  hits precision recall volumeCapture
+Reported intensity         93    83     89.2%  42.1%         65.2%
+Peer-adjusted ratio        93    89     95.7%  45.2%         84.2%
+Gallons above expected     93    66     71.0%  33.5%         85.3%
+Predicted risk             93    89     95.7%  45.2%         84.6%
+
+Review capacity 10%
+                        slots  hits precision recall volumeCapture
+Reported intensity        185   133     71.9%  67.5%         80.5%
+Peer-adjusted ratio       185   153     82.7%  77.7%         91.9%
+Gallons above expected    185   125     67.6%  63.5%         94.7%
+Predicted risk            185   153     82.7%  77.7%         95.2%
+
+Review capacity 20%
+                        slots  hits precision recall volumeCapture
+Reported intensity        369   176     47.7%  89.3%         91.4%
+Peer-adjusted ratio       369   184     49.9%  93.4%         97.9%
+Gallons above expected    369   179     48.5%  90.9%         99.0%
+Predicted risk            369   184     49.9%  93.4%         97.9%
+
+Peer-adjusted ratio: +10.8 percentage points vs intensity, 95% interval [+6.0, +15.2]
+Gallons above expected: -4.3 percentage points vs intensity, 95% interval [-12.4, +2.7]
+Predicted risk: +10.8 percentage points vs intensity, 95% interval [+5.9, +15.2]
+85th percentile target (1.99×): {'Reported intensity': '84.9%', 'Peer-adjusted ratio': '92.4%', 'Gallons above expected': '78.9%', 'Predicted risk': '92.4%'}
+95th percentile target (2.70×): {'Reported intensity': '48.1%', 'Peer-adjusted ratio': '55.7%', 'Gallons above expected': '44.9%', 'Predicted risk': '55.7%'}

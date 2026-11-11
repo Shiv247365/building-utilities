@@ -1,0 +1,174 @@
+{
+  ".gitattributes": {
+    "bytes": 225,
+    "sha256": "8cf26b46a1c6ca04ee31489233dd4f90f10a3d993575c98cba89b7dd4d1f40fe"
+  },
+  ".gitignore": {
+    "bytes": 145,
+    "sha256": "690d8a27d305811ddd60a1b131d948e52e2e5f2853b2ece980f00714e733c933"
+  },
+  "data/DATA_SOURCES.md": {
+    "bytes": 3838,
+    "sha256": "9e62ae0c4454c78663ff6008273c0057cc21738737ab08fb658745efb62dd18c"
+  },
+  "data/electricity_cleaned.csv": {
+    "bytes": 174977911,
+    "sha256": "b6ffc9b4dfcefe5c753594730a08ae822b0d50fec6815abb8f185591e6c630a3"
+  },
+  "data/nyc_multifamily_2022_2023.csv": {
+    "bytes": 8599329,
+    "sha256": "a2ff47070d532c78e9d2116cb73682246bd8c8b6c6e76308b741bea5686381cf"
+  },
+  "data/nyc_multifamily_2024.csv": {
+    "bytes": 5622680,
+    "sha256": "b7e9f2348d6656ca66057f0e28f4efe5aec1d207f4498105f56c3aa21cd36a35"
+  },
+  "demo.html": {
+    "bytes": 153586,
+    "sha256": "5a97d9b451d162942b519649aed2abdff0bfd79a15b0c0197752b9130393a52b"
+  },
+  "docs/DEMO_GUIDE.md": {
+    "bytes": 3512,
+    "sha256": "739810b4914a5a29a037e29bc4660d90ffa2dbcef1d8a0fadc5a22321c3aaebe"
+  },
+  "docs/PROJECT_GUIDE.md": {
+    "bytes": 5463,
+    "sha256": "4f5d1135d6003016399e86f7bed44d0820d032f8512cd484c415c4e46fc6ed79"
+  },
+  "docs/QUICKSTART.md": {
+    "bytes": 3497,
+    "sha256": "985c008121a9d43b5669496f6bed63db43db643b2aa73e7fc087cfed44dc14e7"
+  },
+  "docs/report/Building_Utilities_Report.pdf": {
+    "bytes": 55636,
+    "sha256": "3251ed2b24bc13ab41d6814a338a158bb9798458a3363df5eb49c3c4ea7af6eb"
+  },
+  "docs/report/Building_Utilities_Report.tex": {
+    "bytes": 29385,
+    "sha256": "fa28f685a7d5afa7ca64dd460246c97871cd66d9e65d7b422c15342c90f055ba"
+  },
+  "docs/report/README.txt": {
+    "bytes": 534,
+    "sha256": "b2272f75bcfb04b72acdeadebfad2fcab6547975410da58141b4fb13a07f3103"
+  },
+  "examples/electricity_168_hour_sample.csv": {
+    "bytes": 4425,
+    "sha256": "7762e9ed72fcce6e36a5da578f35d20209c471bca18bc6bde25cd4f978c64410"
+  },
+  "examples/water_portfolio_sample.csv": {
+    "bytes": 2397,
+    "sha256": "5d216ea3b6eda617b15e22c88a3f0a1875a8ac3ebf5df72909745c7b42eb4bee"
+  },
+  "notebooks/seven_day_meter_study.ipynb": {
+    "bytes": 20278,
+    "sha256": "354ade6752441e1137e31491b94d087e385cae1316eb40766bb730ef7292c83f"
+  },
+  "notebooks/water_audit_priority_study.ipynb": {
+    "bytes": 32899,
+    "sha256": "ecd2b724e90f76ce39fef43dca0341f7696d13aed61ed7cfc5f2a6b071775ac5"
+  },
+  "notebooks/water_audit_study.ipynb": {
+    "bytes": 22119,
+    "sha256": "e631e7fe2b8e41789bff2ecb4ce6af5153adaa2dae4924b7136471c9a8085043"
+  },
+  "NOTICE.md": {
+    "bytes": 346,
+    "sha256": "83d63843557864faf23bb9568f99d2f57f738cadf03dda5c00044c02858906cf"
+  },
+  "README.md": {
+    "bytes": 4560,
+    "sha256": "674fdec081e2cab581bc206cf36ae9d9711e17248a2907a6edf66821bed7310a"
+  },
+  "requirements.txt": {
+    "bytes": 27,
+    "sha256": "f36cb59b3a3402cf36f4481c9f15fb2fd98e9961bf4b23cf18473155f5f02de9"
+  },
+  "results/seven_day_meter_study.txt": {
+    "bytes": 2575,
+    "sha256": "7f1995333d76dc156862108b0b99280f2a3181ea6972af994b0c399df1ff643d"
+  },
+  "results/water_audit_priority_study.txt": {
+    "bytes": 3164,
+    "sha256": "41729469de1c5cdf81beeb2b664aea386615f0a782e23aa94614fd6ccdf3b789"
+  },
+  "results/water_audit_study.txt": {
+    "bytes": 1787,
+    "sha256": "d25644ba845d430fb28e1146fc66386334a716dc5b3e8e73fc162de9689b7592"
+  },
+  "source/building_utilities_demo.html": {
+    "bytes": 6340,
+    "sha256": "cf74113ea3e13ebc55d33dd4d53bdc199f728e91b44d679253afc033817959e7"
+  },
+  "source/checks/check_electricity.cjs": {
+    "bytes": 5339,
+    "sha256": "5cba0283544da9840ce0792096ccde4ef408b770d6d689e1efdb4266113e564c"
+  },
+  "source/checks/check_utilities_demo.cjs": {
+    "bytes": 3241,
+    "sha256": "b5e8cdac64a0ec4c450fbbc092591a42497e74e9dbc861eec8b20aa333f30811"
+  },
+  "source/checks/check_water_demo.cjs": {
+    "bytes": 3518,
+    "sha256": "6d31e64b03b1fb86f95e81d520806be978e160c352721835af9dd72aa808ace0"
+  },
+  "source/checks/check_water_portfolio.cjs": {
+    "bytes": 7827,
+    "sha256": "d638a64ecfa69e389ab28d7439540b2639ceae1f70e7718b9ee4f8d4aa2d9fcd"
+  },
+  "source/electricity_payload.json": {
+    "bytes": 7409,
+    "sha256": "20736536e4cad3beed3bb95fa45454682a551b249cce95c2e5fc790ff3b0a5bb"
+  },
+  "source/electricity_reference.json": {
+    "bytes": 1857,
+    "sha256": "be727e12a0af9bd38c5b2422b38c943a1d4886770c32ecbdbf5297bb1ce934fe"
+  },
+  "source/generated/seven_day_meter.html": {
+    "bytes": 41877,
+    "sha256": "9cbde06aabeca7524ab7889456171e48ac868d6153bc1a57e89b0ced678d5e66"
+  },
+  "source/generated/water_audit_portfolio.html": {
+    "bytes": 82369,
+    "sha256": "b607ba33b8da36639da34489ce4f04232ffe6cb769fb248307747ddf6cec7f0f"
+  },
+  "source/generated/water_property_check.html": {
+    "bytes": 27946,
+    "sha256": "154ddc1fdcff657bced042800a1581a00a6b3925a9ff7d296e340853c50f46b6"
+  },
+  "source/portfolio_model.json": {
+    "bytes": 15429,
+    "sha256": "a8fa55d0a8a75e5298f2cf735cf8a11efe63fd67da88db6c3b5d22e6c7dbc566"
+  },
+  "source/rebuild_demo.py": {
+    "bytes": 2325,
+    "sha256": "cc9e931c77d7d4f6ba7c0d714fbd7cdd8abcfcebe69d171a69bfc719d27a3b7d"
+  },
+  "source/run_experiment.py": {
+    "bytes": 812,
+    "sha256": "b42e9ebc42a701f48b7556ae7c2b768866b2bdd82676571e9de0531d4de65827"
+  },
+  "source/seven_day_meter.html": {
+    "bytes": 18615,
+    "sha256": "b79d8b9f7ed96e76a1aee9cea327d681b3a3b3eaed00251e8e318ac369cd6aa6"
+  },
+  "source/utilities_theme.css": {
+    "bytes": 15881,
+    "sha256": "32326cf8b76a9b68f2570c10f7ef1d9dc69ea7ec6e54874692cdd18a9579803f"
+  },
+  "source/water_audit_queue_template.html": {
+    "bytes": 14361,
+    "sha256": "3d49124119c07caec8cd64a03b46921767a273adb91aab616db536002f2d6064"
+  },
+  "source/water_final_model.json": {
+    "bytes": 1309,
+    "sha256": "627b4b77b46819a05426beb145caf6ad244192c528232cd09739fb2ae2ac3fee"
+  },
+  "source/water_portfolio.html": {
+    "bytes": 25171,
+    "sha256": "e6e7ea9bdb573f6d94d77b0a56f48d9d4d835ddd8e5f6290f27d4f66040d826e"
+  },
+  "source/water_property_checker.html": {
+    "bytes": 4480,
+    "sha256": "b3cd674a7d2d7470af7e08689a6dfda5ef71625e68a0969d5d2d63ae3087c540"
+  }
+}

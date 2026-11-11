@@ -1,0 +1,610 @@
+{
+  "peerCoefficients": [
+    5.554407238424549,
+    -0.2572478728107004,
+    1.2687212873722882
+  ],
+  "areaReference": [
+    25250.0,
+    681767.8999999978
+  ],
+  "threshold": 2.2542261448428973,
+  "policies": [
+    "Reported intensity",
+    "Peer-adjusted ratio",
+    "Gallons above expected",
+    "Predicted risk"
+  ],
+  "defaultPolicy": 1,
+  "risk": {
+    "center": [
+      0.011071941565798323,
+      11.107066657877784,
+      0.9907612824798528
+    ],
+    "scale": [
+      0.799032944254488,
+      0.7137634579457262,
+      0.04310591299124304
+    ],
+    "weights": [
+      -6.012223367280314,
+      5.541060475998976,
+      0.018468494703976768,
+      0.13232213303713483
+    ]
+  },
+  "results": [
+    [
+      {
+        "slots": 93,
+        "hits": 83,
+        "precision": 0.8924731182795699,
+        "recall": 0.4213197969543147,
+        "volumeCapture": 0.6515948263262786
+      },
+      {
+        "slots": 93,
+        "hits": 89,
+        "precision": 0.956989247311828,
+        "recall": 0.4517766497461929,
+        "volumeCapture": 0.8420459350570509
+      },
+      {
+        "slots": 93,
+        "hits": 66,
+        "precision": 0.7096774193548387,
+        "recall": 0.3350253807106599,
+        "volumeCapture": 0.8527495248000484
+      },
+      {
+        "slots": 93,
+        "hits": 89,
+        "precision": 0.956989247311828,
+        "recall": 0.4517766497461929,
+        "volumeCapture": 0.8463465836986767
+      }
+    ],
+    [
+      {
+        "slots": 185,
+        "hits": 133,
+        "precision": 0.7189189189189189,
+        "recall": 0.6751269035532995,
+        "volumeCapture": 0.8046108471008244
+      },
+      {
+        "slots": 185,
+        "hits": 153,
+        "precision": 0.827027027027027,
+        "recall": 0.7766497461928934,
+        "volumeCapture": 0.9186637512749035
+      },
+      {
+        "slots": 185,
+        "hits": 125,
+        "precision": 0.6756756756756757,
+        "recall": 0.6345177664974619,
+        "volumeCapture": 0.9474609633413229
+      },
+      {
+        "slots": 185,
+        "hits": 153,
+        "precision": 0.827027027027027,
+        "recall": 0.7766497461928934,
+        "volumeCapture": 0.9522223030694561
+      }
+    ],
+    [
+      {
+        "slots": 369,
+        "hits": 176,
+        "precision": 0.47696476964769646,
+        "recall": 0.8934010152284264,
+        "volumeCapture": 0.9139735616362464
+      },
+      {
+        "slots": 369,
+        "hits": 184,
+        "precision": 0.4986449864498645,
+        "recall": 0.934010152284264,
+        "volumeCapture": 0.9792564981446595
+      },
+      {
+        "slots": 369,
+        "hits": 179,
+        "precision": 0.48509485094850946,
+        "recall": 0.9086294416243654,
+        "volumeCapture": 0.9899593496194103
+      },
+      {
+        "slots": 369,
+        "hits": 184,
+        "precision": 0.4986449864498645,
+        "recall": 0.934010152284264,
+        "volumeCapture": 0.9792564981446595
+      }
+    ]
+  ],
+  "capacities": [
+    0.05,
+    0.1,
+    0.2
+  ],
+  "examples": [
+    {
+      "property_id": "NYC-001",
+      "floor_area_ft2": 51144.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1884500.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-002",
+      "floor_area_ft2": 28995.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1205100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-003",
+      "floor_area_ft2": 27084.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4299100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-004",
+      "floor_area_ft2": 53816.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 5289200.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-005",
+      "floor_area_ft2": 120500.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 7849200.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-006",
+      "floor_area_ft2": 320571.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 7476800.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-007",
+      "floor_area_ft2": 63000.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 5820600.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-008",
+      "floor_area_ft2": 58800.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 6935900.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-009",
+      "floor_area_ft2": 171414.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1218200.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-010",
+      "floor_area_ft2": 161422.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 8659400.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-011",
+      "floor_area_ft2": 88200.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 7345100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-012",
+      "floor_area_ft2": 253874.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 10594700.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-013",
+      "floor_area_ft2": 25872.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 737600.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-014",
+      "floor_area_ft2": 86443.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4113500.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-015",
+      "floor_area_ft2": 38625.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 3729000.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-016",
+      "floor_area_ft2": 500361.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 23023500.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-017",
+      "floor_area_ft2": 37105.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 9195800.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-018",
+      "floor_area_ft2": 34565.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1619400.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-019",
+      "floor_area_ft2": 52338.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1036500.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-020",
+      "floor_area_ft2": 76484.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 6391000.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-021",
+      "floor_area_ft2": 181226.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 6149700.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-022",
+      "floor_area_ft2": 154709.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4088400.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-023",
+      "floor_area_ft2": 92000.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 2644400.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-024",
+      "floor_area_ft2": 40428.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 7386500.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-025",
+      "floor_area_ft2": 56190.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 2311500.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-026",
+      "floor_area_ft2": 71501.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 3506100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-027",
+      "floor_area_ft2": 99272.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1952400.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-028",
+      "floor_area_ft2": 26937.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 3232300.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-029",
+      "floor_area_ft2": 95423.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4203300.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-030",
+      "floor_area_ft2": 29950.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 5112000.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-031",
+      "floor_area_ft2": 37750.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 2375700.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-032",
+      "floor_area_ft2": 225158.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 7023000.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-033",
+      "floor_area_ft2": 68630.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4150899.9999999995,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-034",
+      "floor_area_ft2": 63882.0,
+      "occupancy_pct": 90.0,
+      "annual_water_gal": 4537700.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-035",
+      "floor_area_ft2": 34748.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1882100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-036",
+      "floor_area_ft2": 29975.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 5485100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-037",
+      "floor_area_ft2": 25115.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 3568600.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-038",
+      "floor_area_ft2": 170772.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 8607000.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-039",
+      "floor_area_ft2": 115419.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 7157900.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-040",
+      "floor_area_ft2": 30978.0,
+      "occupancy_pct": 90.0,
+      "annual_water_gal": 2443100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-041",
+      "floor_area_ft2": 117118.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 8808300.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-042",
+      "floor_area_ft2": 33840.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4108600.0000000005,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-043",
+      "floor_area_ft2": 156170.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 5702400.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-044",
+      "floor_area_ft2": 110593.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 4168899.9999999995,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-045",
+      "floor_area_ft2": 52640.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 8604100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-046",
+      "floor_area_ft2": 85400.0,
+      "occupancy_pct": 95.0,
+      "annual_water_gal": 6277700.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-047",
+      "floor_area_ft2": 52220.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 66000.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-048",
+      "floor_area_ft2": 105230.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 6656200.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-049",
+      "floor_area_ft2": 61151.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1088600.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "NYC-050",
+      "floor_area_ft2": 25530.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 910100.0,
+      "complete_year": "yes",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "EXAMPLE-INCOMPLETE",
+      "floor_area_ft2": 51144.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1884500.0,
+      "complete_year": "no",
+      "estimated_water": "no",
+      "whole_property": "yes"
+    },
+    {
+      "property_id": "EXAMPLE-ESTIMATED",
+      "floor_area_ft2": 28995.0,
+      "occupancy_pct": 100.0,
+      "annual_water_gal": 1205100.0,
+      "complete_year": "yes",
+      "estimated_water": "yes",
+      "whole_property": "yes"
+    }
+  ],
+  "test": {
+    "size": 1843,
+    "groups": 1747,
+    "elevated": 197,
+    "candidates": 2647
+  }
+}

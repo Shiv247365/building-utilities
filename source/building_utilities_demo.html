@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Building Utilities Audit Platform | CE 663</title>
+<style>__APP_STYLES__</style>
+</head>
+<body>
+  <aside class="workspace-sidebar">
+    <a class="workspace-brand" href="#home" aria-label="Building Utilities home">
+      <span class="brand-mark" aria-hidden="true">BU</span>
+      <span class="brand-name">Building Utilities<small>Facilities workspace</small></span>
+    </a>
+    <p class="nav-label">Workspace</p>
+    <nav aria-label="Demo navigation">
+      <a id="nav-home" href="#home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a>
+      <a id="nav-water" href="#water"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3C9 7 5 11 5 15a7 7 0 0 0 14 0c0-4-4-8-7-12Z"/><path d="M8 15a4 4 0 0 0 4 4"/></svg>Water audit</a>
+      <a id="nav-electricity" href="#electricity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/></svg>Electricity forecast</a>
+    </nav>
+    <div class="sidebar-foot"><span>CE 663 · IIT Kanpur</span>Project demonstration · Works offline</div>
+  </aside>
+  <main class="workspace-main">
+    <header class="workspace-topbar"><p class="breadcrumb">Workspace<span>/</span><strong id="breadcrumb-current">Overview</strong></p><span class="status">Offline workspace</span></header>
+    <section class="home" id="view-home" aria-labelledby="demo-title" tabindex="-1">
+      <div class="home-header">
+        <h1 id="demo-title">Building utilities workspace</h1>
+        <p>Choose the decision you need to make. Each tool guides you through adding data and reviewing the result.</p>
+      </div>
+      <div class="choices">
+        <a class="tool-card" href="#water">
+          <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3C9 7 5 11 5 15a7 7 0 0 0 14 0c0-4-4-8-7-12Z"/><path d="M8 15a4 4 0 0 0 4 4"/></svg></span>
+          <h2>Water audit</h2>
+          <p>Decide which properties to review first and export a prioritized shortlist.</p>
+          <dl class="tool-input"><dt>Required input</dt><dd>Annual water use, floor area, and occupancy per property</dd></dl>
+          <span class="tool-open">Open Water Audit Queue →</span>
+        </a>
+        <a class="tool-card" href="#electricity">
+          <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/></svg></span>
+          <h2>Electricity forecast</h2>
+          <p>Estimate tomorrow’s electricity use and see when hourly use may peak.</p>
+          <dl class="tool-input"><dt>Required input</dt><dd>Seven consecutive days of hourly kWh readings</dd></dl>
+          <span class="tool-open">Open Seven-Day Meter →</span>
+        </a>
+      </div>
+      <section class="home-guide" aria-labelledby="start-title">
+        <h2 id="start-title">How to get started</h2>
+        <ol class="workflow"><li><span>1</span>Select a tool</li><li><span>2</span>Upload a CSV or try a sample</li><li><span>3</span>Review your results</li></ol>
+      </section>
+    </section>
+    <section id="view-water" aria-label="Water Audit Queue demo" tabindex="-1" hidden>
+      <iframe class="module-frame" id="frame-water" title="Water Audit Queue"></iframe>
+    </section>
+    <section id="view-electricity" aria-label="Electricity Seven-Day Meter demo" tabindex="-1" hidden>
+      <iframe class="module-frame" id="frame-electricity" title="Electricity Seven-Day Meter"></iframe>
+    </section>
+  </main>
+  <script id="module-documents" type="application/json">__MODULE_DOCUMENTS__</script>
+  <script>
+    'use strict';
+    const documents = JSON.parse(document.getElementById('module-documents').textContent);
+    const views = new Map(['home', 'water', 'electricity'].map(name => [name, {
+      panel: document.getElementById(`view-${name}`),
+      link: document.getElementById(`nav-${name}`),
+      frame: document.getElementById(`frame-${name}`),
+    }]));
+
+    for (const [name, view] of views) {
+      if (!view.frame) continue;
+      view.frame.addEventListener('load', () => {
+        const frameDocument = view.frame.contentDocument;
+        const content = frameDocument?.querySelector('main');
+        if (!content) return;
+
+        // Keep the current demo open when a source reference is clicked.
+        for (const link of frameDocument.querySelectorAll('a[href^="https://"]')) {
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+        }
+        const fit = () => {
+          if (!view.panel.hidden) {
+            view.frame.style.height = `${Math.ceil(content.getBoundingClientRect().height)}px`;
+          }
+        };
+        view.fit = fit;
+        new ResizeObserver(fit).observe(content);
+        fit();
+      });
+      view.open = () => {
+        if (!view.frame.hasAttribute('srcdoc')) view.frame.srcdoc = documents[name];
+        view.fit?.();
+      };
+    }
+
+    function showView(focus) {
+      const route = window.location.hash.slice(1);
+      const name = views.has(route) ? route : 'home';
+      for (const [key, view] of views) {
+        view.panel.hidden = key !== name;
+        if (key === name) view.link.setAttribute('aria-current', 'page');
+        else view.link.removeAttribute('aria-current');
+      }
+      const current = views.get(name);
+      current.open?.();
+      document.getElementById('breadcrumb-current').textContent = name === 'home' ? 'Overview' : current.frame.title;
+      document.title = name === 'home' ? 'Building Utilities Audit Platform | CE 663' : `${current.frame.title} | CE 663`;
+      if (focus) {
+        current.panel.focus({preventScroll: true});
+        window.scrollTo(0, 0);
+      }
+    }
+
+    window.addEventListener('hashchange', () => showView(true));
+    showView(false);
+  </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,amsmath,amssymb,booktabs,tabularx,array}
+\usepackage{microtype}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,linktoc=all]{hyperref}
+\renewcommand{\thesubsection}{\thesection.\Alph{subsection}}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{3pt}
+\setcounter{tocdepth}{2}
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+{\LARGE\bfseries Building Utilities Audit Platform\par}
+\vspace{0.6em}
+{\Large Data-Driven Electricity Forecasting and\\Water Audit Prioritization\par}
+\vspace{2em}
+{\bfseries SHIVESH SHUKLA\quad AADITYA RATHI\quad SIDDHANT SINGH\par}
+\vspace{1em}
+Department of Civil Engineering\\Indian Institute of Technology Kanpur
+\vspace{1.2em}
+
+CE 663 Project Report\\November 2026
+\end{center}
+\begin{abstract}
+
+Building operators must anticipate electricity demand and allocate limited capacity for investigating unusual water use. This project develops a Building Utilities Audit Platform that combines next-day electricity forecasting with annual water benchmarking and portfolio review prioritization. The electricity study evaluates a pooled ridge-regression model against copy-yesterday and copy-last-week baselines using cleaned Building Data Genome Project 2 data. On 118 held-out buildings in 2017, ridge achieves 8.843 kWh hourly mean absolute error and 11.325\% median building normalized error, improving on copy-yesterday for 80 buildings. The water studies use NYC multifamily disclosures to estimate typical annual use and compare four review policies under equal budgets. At a 10\% review budget, peer-adjusted ranking identifies 153 of 197 properties with elevated next-year reported use, with 82.7\% precision and 77.7\% recall. A self-contained browser demonstration exposes inputs, quality checks, comparisons, and exports. The results support screening and investigation; they do not establish confirmed leaks, intervention benefits, or measured savings. The report documents the data, split design, methods, evaluation, implementation, and limitations of both workflows.
+\end{abstract}\vfill\noindent\rule{\textwidth}{0.4pt}\newpage
+\tableofcontents\newpage
+\section{Introduction}
+Electricity and water management require decisions at different time scales. Hourly electricity records can inform next-day operating plans, whereas annual water disclosures can help organize a property-review workload. A facilities team may need both capabilities, together with clear input requirements and understandable comparisons.
+
+\subsection{Problem Statement}
+The first research question is whether seven days of observed electricity use can produce a useful 24-hour forecast on buildings not used for model fitting. The second is whether peer adjustment can improve the yield of a limited water-review budget compared with ranking properties by reported intensity alone. Neither task requires a claim that the model directly controls equipment or detects a verified fault.
+
+A usable prototype must also explain where to provide input, identify records that cannot be assessed reliably, and show why a property or forecast deserves attention. These workflow requirements motivate combining the analyses in one consistent interface.
+
+For example, an operator can inspect the expected hourly demand profile before the following day, while an annual water reviewer can use a shortlist to decide which billing and meter records to inspect first. Both outputs help organize attention. Their value depends on how the operator follows up, which is outside the present evaluation.
+
+\subsection{Proposed Architecture and Scope}
+The platform includes Seven-Day Meter, Water Audit Queue, and Check One Property. Seven-Day Meter accepts a complete week of hourly readings and predicts the following day. Water Audit Queue ranks annual property records under a selected review policy and capacity. The individual checker compares a single property with a separately fitted expected-use benchmark.
+
+The deliverables comprise the offline browser demo, three executed research notebooks, exact source extracts, small upload examples, editable templates, fitted parameters, and reproduction instructions. The prototype does not include live meter ingestion, utility billing integration, or an operational audit-outcome database. Its central contribution is an evaluated and inspectable decision-support workflow.
+
+The common platform is therefore a shared entry point rather than a combined utility score. Electricity forecasts are expressed in hourly kWh and water comparisons in annual gallons or intensity. Keeping those units and time scales visible helps the user interpret each result in its operational context.
+
+\newpage
+\section{Background and Related Work}
+\subsection{Building Energy Forecasting}
+The Building Data Genome Project 2 (BDG2) provides a public basis for studying building energy use [1]. BuildingsBench further motivates evaluation across building time series with explicit benchmark protocols [2]. This project uses the authors' cleaned BDG2 electricity export and defines its own eligibility filters and building split; its cohort should not be presented as the published BuildingsBench processed cohort.
+
+Simple persistence forecasts are essential comparators. Copying yesterday or the corresponding day of the previous week uses recurring operation schedules without fitting a complex model. The ridge model must therefore demonstrate improvement against these transparent alternatives.
+
+Regularization is useful here because adjacent historical readings and schedule indicators can be correlated. Ridge retains a compact linear model with a single tuned penalty, making it practical to fit in a notebook and execute in a browser. The study evaluates whether that added fitting step improves on the recurring patterns already captured by persistence.
+
+\subsection{Water Benchmarking and Review Policies}
+Prior work studies building water consumption using property characteristics and statistical or machine-learning models [3,4]. EPA multifamily water benchmarking similarly provides context for comparing buildings [5]. Such comparisons help select records for investigation, but a benchmark-relative outlier is not itself evidence of a leak.
+
+A queue also introduces a decision constraint: only a fixed number of properties can be reviewed. A policy that finds more elevated properties may differ from one that represents more gallons above a benchmark. This motivates reporting both property-level yield and volume coverage.
+
+The distinction between prediction and allocation matters. A low average prediction error does not automatically imply a useful review queue, and a high queue precision does not describe the size of the associated water volume. The two water analyses therefore report different metrics for their different decisions.
+
+\subsection{Position of the Present Project}
+The project links two analytical studies through a shared facilities-management interface. Each study retains its own inputs, target, model, and validation design. The interface supports interpretation and reuse, while the empirical claims rest on held-out comparisons documented in the notebooks.
+
+\newpage
+\section{Datasets and Experimental Design}
+\subsection{Electricity Source and Cohorts}
+The full cleaned electricity CSV contains 17,544 timestamp rows and 1,578 building columns. The experiment selects Bear, Fox, Panther, and Rat, contributing 639 columns before eligibility filtering. The data cover 2016 and 2017 on the supplied local-clock grid. Missing cells and source cleaning determine which complete forecast windows are available.
+
+\begin{center}\small
+\textit{Electricity evaluation cohorts}\par\medskip
+\begin{tabularx}{\textwidth}{XXXX}
+\toprule
+\textbf{Split} & \textbf{Year} & \textbf{Buildings} & \textbf{Forecast days}\\\midrule
+Training & 2016 & 376 & 112,126\\
+Validation & 2016 & 128 & 38,630\\
+Test & 2017 & 118 & 37,808\\
+\bottomrule\end{tabularx}\end{center}
+Building assignment is stratified within site using a fixed hash split. Training and validation use separate 2016 buildings; the test cohort uses previously unseen buildings in 2017. A test building needs at least 30 complete forecast days. The same sites occur across splits, so this design evaluates new buildings within represented sites rather than transfer to a new site.
+
+The eligibility rules are applied to complete windows rather than filling missing readings with an assumed profile. This avoids evaluating forecasts against invented targets, but it restricts the population to usable meter periods. A building can contribute many overlapping history windows, so forecast days should not be interpreted as independent buildings.
+
+\subsection{Water Extracts and Property Groups}
+The NYC multifamily extracts contain 19,732 annual records from 2022, 22,219 from 2023, and 26,745 from 2024 [6]. Water use in the source is expressed in thousands of US gallons; floor area is in square feet. Conversions, quality screening, duplicate handling, and grouping are performed in the notebooks.
+
+Shared property, parent, building, and lot identifiers define connected groups. Group separation reduces the risk that related properties occur in both fitting and evaluation data. Historical labels from test groups are excluded from fitting. Exact source bytes and SHA-256 hashes are included in the project package.
+
+The water screen requires positive area and reported water, occupancy within the valid range, whole-property metering, no reported estimate, and a complete-year flag. Identical selected rows are collapsed, while unresolved conflicting property-year records are excluded. These rules improve comparability but can exclude buildings with difficult reporting conditions.
+
+\newpage
+\section{Seven-Day Electricity Forecasting}
+\subsection{Forecast Inputs and Baselines}
+Each eligible example consists of 168 observed hourly readings followed by a complete 24-hour target day. For hour h of that next day, the copy-yesterday baseline uses the latest observed day's corresponding hour. Copy-last-week uses the first day of the seven-day history. These forecasts depend only on observed values.
+
+\subsection{Pooled Ridge Regression}
+The model combines seven same-hour lag readings, the previous 24-hour mean, and calendar features for hour and weekday. Each window is scaled by its preceding 168-hour observed mean. Training gives each building equal weight. The intercept is unpenalized, and negative forecasts are clipped to zero.
+
+The design matrix has 38 columns: an intercept, seven lag values, one prior-day mean, 23 hour indicators, and six weekday indicators. Reference categories avoid redundant indicator columns. Normalization makes the pooled fit less dependent on a building's absolute demand scale; predictions are multiplied by the observed history mean to return to kWh.
+
+\[\min_{\beta}\;\sum_{b} w_b\lVert X_b\beta-z_b\rVert_2^2+\alpha\lVert\beta_{\mathrm{nonint}}\rVert_2^2\]
+Validation compares four ridge penalties (0.0001, 0.001, 0.01, and 0.1). The selected penalty is 0.01. The lowest validation median building normalized error selects the default method, which is then frozen before the 2017 test is scored.
+
+\subsection{Evaluation Metrics and Uncertainty}
+\[\mathrm{NMAE}_b=100\,\frac{\sum_{d,h}|\hat y_{bdh}-y_{bdh}|}{\sum_{d,h}y_{bdh}}\]
+The report gives overall hourly MAE in kWh and the median NMAE across buildings. MAE retains the physical scale; median building NMAE prevents large buildings alone from determining the comparison. Paired differences compare methods on the same test buildings. A site-stratified building bootstrap describes uncertainty in the median paired difference. Test readings enter the metrics, never the forecast features.
+
+Equal building weighting is implemented by averaging each building's fitting contribution before pooling. The bootstrap also resamples buildings within site rather than individual hourly rows, preserving the building as the unit of comparison. The uncertainty interval summarizes this cohort and sampling scheme, not all possible future operating conditions.
+
+\newpage
+\section{Individual-Property Water Benchmark}
+\subsection{Cleaning and Model Selection}
+The individual checker estimates expected annual water intensity from floor area and occupancy. The study compares an overall-median baseline, a size-band median, and an area-and-occupancy regression. The validation cohort is drawn from 2023 in separate groups. The selected regression is refitted using the latest eligible 2022-2023 record per fitting property.
+
+The regression fits log water intensity using log floor area and occupancy, then transforms estimates back to intensity. The size-band alternative uses training-area quartiles. Choosing the method on 2023 validation before scoring the reserved 2024 groups separates model selection from the final comparison.
+
+\begin{center}\small
+\textit{Individual benchmark cohorts}\par\medskip
+\begin{tabularx}{\textwidth}{XXX}
+\toprule
+\textbf{Stage} & \textbf{Properties} & \textbf{Groups}\\\midrule
+2022 initial training & 8,430 & 7,823\\
+2023 validation & 2,549 & 2,325\\
+2022-2023 final fitting & 13,054 & 11,246\\
+2024 held-out test & 2,394 & 2,160\\
+\bottomrule\end{tabularx}\end{center}
+\subsection{Expected Use and Comparison Range}
+\[I_i=\frac{V_i}{A_i}\]
+\[r_i=\frac{I_i}{\hat I_i}\]
+A validation-calibrated observed-to-expected ratio range is approximately 0.434 to 2.218. The application uses this empirical comparison band to communicate typical variation. It is not a guarantee for an individual property, and high reported use can reflect legitimate occupancy or operational differences.
+
+Expected annual gallons are obtained by multiplying expected intensity by floor area. The ratio band then scales that expectation to show an empirical range. A record above the upper limit triggers review guidance, while a record inside the range is simply consistent with the comparison population; it is not certified efficient.
+
+\subsection{User Workflow}
+The user enters area, occupancy, and annual water use, chooses US or metric units, and confirms the reporting coverage. The output shows expected use, the comparison range, a status explanation, and suggested checks. The individual checker uses its original benchmark; the portfolio study below uses a separately frozen benchmark for next-year queue evaluation.
+
+\newpage
+\section{Portfolio Water Audit Prioritization}
+\subsection{Target and Ranking Policies}
+The portfolio study asks which current records should be reviewed when the goal is to find elevated next-year reports. The elevated-use cutoff is the 90th percentile of validation ratios under the portfolio benchmark: 2.254 times expected intensity. Training uses 6,581 annual transitions in 6,270 groups; validation uses 2,094 transitions in 2,001 groups.
+
+Four policies rank candidates: reported intensity, peer-adjusted ratio, gallons above expected, and a trained risk score. The risk model uses regularized logistic regression on current-record features. Validation selects peer-adjusted ratio as the demo default; its precision ties the risk model at the 10\% budget.
+
+The risk features are log peer ratio, log floor area, and occupancy as a fraction. Training-set means and standard deviations standardize these predictors. Gallons above expected equals the positive difference between observed and expected intensity multiplied by area, so it deliberately gives larger properties more weight than a ratio alone.
+
+\[k=\lceil qN\rceil\]
+\subsection{Held-Out Follow-Up and Metrics}
+Of 2,647 eligible 2023 test candidates, 1,843 have eligible 2024 follow-up (69.6\%) across 1,747 groups. There are 197 elevated 2024 reports among the matched properties. Policies are evaluated on the same matched set at 5\%, 10\%, and 20\% review budgets.
+
+Precision is the fraction of reviewed properties with an elevated next-year report; recall is the fraction of all elevated reports selected. Volume capture measures the share of future gallons above the fixed cutoff represented by the shortlist. It is an accounting measure of reported volume, not water that can necessarily be saved.
+
+At a fixed budget, every policy receives the same number of slots, computed by rounding the budget fraction upward. This prevents one policy from appearing better merely because it reviews more properties. The outcome cutoff remains fixed across those comparisons; changing capacity changes the selected set rather than the definition of an elevated report.
+
+\subsection{Retrospective Nature of the Extension}
+The portfolio extension was developed after the earlier 2024 individual-benchmark evaluation had been inspected. The queue analysis is therefore retrospective. Group separation and frozen validation choices improve rigor, but the study is not a prospectively registered operational trial. Follow-up availability and the absence of verified audit outcomes remain material limitations.
+
+\newpage
+\section{Platform Architecture and Implementation}
+\subsection{Common Interface and Navigation}
+The self-contained HTML demo presents Home, Water Audit, and Electricity Forecast through a common navigation layout. Each tool retains its current session when the user switches between modules. Explicit input areas and sample buttons make the initial action visible; outputs are displayed after the relevant data and action are supplied.
+
+Research and presentation are separated through explicit artifacts. The notebooks estimate parameters and record evaluation output; the demo loads the resulting parameters and selected examples. Rebuilding the HTML updates the presentation from those files. Editing the interface does not retrain a model or alter the saved research results.
+
+\begin{center}\small
+\textit{Analytical and interface layers}\par\medskip
+\begin{tabularx}{\textwidth}{XX}
+\toprule
+\textbf{Layer} & \textbf{Function}\\\midrule
+Research notebooks & Clean data, fit models, evaluate cohorts\\
+Bundled parameters & Store fitted values and example records\\
+Browser modules & Validate inputs, calculate outputs, explain results\\
+Exports & Provide shortlists, checks, or forecast data\\
+\bottomrule\end{tabularx}\end{center}
+\subsection{Data Entry, Validation, and Exports}
+Electricity uploads use timestamp and kwh columns with exactly 168 consecutive hourly records. The application rejects duplicate or missing hours. Bundled examples can reveal measured next-day values so users can compare the model with yesterday and last week. Actual future readings are available only for those supplied examples.
+
+Water portfolio inputs use one annual row per property, with area, occupancy, gallons, and reporting-quality flags. The queue includes search, budget adjustment, four policies, full ranking and shortlist views, property detail, quality information, and exports. Example quality failures demonstrate how unsuitable records are routed.
+
+For a demonstration, sample data makes every workflow immediately available, while upload examples document the accepted format. Quality flags remain visible so an operator can distinguish a high-use record from one that lacks an adequate reporting basis. Exported shortlists support subsequent review outside the demo.
+
+\subsection{Reproducibility and Verification}
+The packaged notebooks run from local data without downloading datasets. Functional checks cover model parity, navigation, CSV round trips, duplicate and missing records, water unit conversion, ranking, and export behavior. These checks use simulated document interactions. Visual acceptance and usability on the presentation laptop remain separate from numerical correctness.
+
+\newpage
+\section{Electricity Results and Analysis}
+\subsection{Held-Out Performance}
+\begin{center}\small
+\textit{2017 test results on 118 unseen buildings}\par\medskip
+\begin{tabularx}{\textwidth}{XXX}
+\toprule
+\textbf{Method} & \textbf{Hourly MAE (kWh)} & \textbf{Median NMAE (\%)}\\\midrule
+Copy yesterday & 9.448 & 12.470\\
+Copy last week & 11.634 & 15.852\\
+Pooled ridge & 8.843 & 11.325\\
+\bottomrule\end{tabularx}\end{center}
+Ridge has the lowest aggregate error among the evaluated methods. Its validation median NMAE is 10.397\%, compared with 11.400\% for copy-yesterday and 14.147\% for copy-last-week. The observed test ordering is consistent with the validation selection.
+
+\subsection{Building-Level and Site Variation}
+\begin{center}\small
+\textit{Median building NMAE by site (\%)}\par\medskip
+\begin{tabularx}{\textwidth}{XXXX}
+\toprule
+\textbf{Site} & \textbf{Yesterday} & \textbf{Last week} & \textbf{Ridge}\\\midrule
+Bear (18) & 11.58 & 11.63 & 10.49\\
+Fox (27) & 10.43 & 9.41 & 8.20\\
+Panther (21) & 10.49 & 14.16 & 9.67\\
+Rat (52) & 14.38 & 20.79 & 14.09\\
+\bottomrule\end{tabularx}\end{center}
+Ridge improves on copy-yesterday for 80 of 118 buildings. The median paired change is -0.81 percentage points, with a 95\% site-stratified building-bootstrap interval of -1.37 to -0.23. This is the median of paired changes, which differs from subtracting the two separate cohort medians.
+
+The separate cohort medians differ by 1.145 percentage points, whereas the median paired improvement is 0.81 points. The latter preserves the within-building comparison. Counting 80 wins also shows that improvement is not universal: an operator should retain the baselines as useful context rather than assume the fitted model is best in every case.
+
+Weekday median NMAE is 10.73\% for ridge versus 11.95\% for yesterday; weekend values are 12.39\% and 14.21\%. Rat has the largest errors among these site summaries. The result supports average improvement for this cohort, while preserving clear evidence that individual buildings and conditions differ.
+
+These subgroup summaries are descriptive. They help identify where further error analysis would be useful, but do not establish why a site is harder to forecast. Weather, holidays, building function, and equipment schedules are not separately tested as explanations in this experiment.
+
+\newpage
+\section{Water Results and Policy Trade-Offs}
+\subsection{Individual Benchmark Accuracy}
+\begin{center}\small
+\textit{2024 intensity prediction error (US gal/ft2/year)}\par\medskip
+\begin{tabularx}{\textwidth}{XXX}
+\toprule
+\textbf{Method} & \textbf{Median absolute error} & \textbf{Mean absolute error}\\\midrule
+Overall median & 23.11 & 42.21\\
+Size-band median & 22.77 & 41.03\\
+Area + occupancy & 21.22 & 41.30\\
+\bottomrule\end{tabularx}\end{center}
+The regression improves the median error, but does not have the lowest mean absolute error. This distinction limits a blanket claim of superiority. The empirical comparison band covers 78.9\% of test records, and 11.4\% are sent for review.
+
+The mean error is more sensitive to large residuals than the median. A model can improve a typical property's error while leaving difficult cases with substantial errors. Reporting both measures and the empirical band coverage prevents the central result from hiding those remaining discrepancies.
+
+\subsection{Queue Performance at a 10\% Budget}
+\begin{center}\small
+\textit{185 reviews among 1,843 matched test properties}\par\medskip
+\begin{tabularx}{\textwidth}{XXXXX}
+\toprule
+\textbf{Policy} & \textbf{Hits} & \textbf{Precision} & \textbf{Recall} & \textbf{Volume}\\\midrule
+Intensity & 133 & 71.9\% & 67.5\% & 80.5\%\\
+Peer ratio & 153 & 82.7\% & 77.7\% & 91.9\%\\
+Above expected & 125 & 67.6\% & 63.5\% & 94.7\%\\
+Risk score & 153 & 82.7\% & 77.7\% & 95.2\%\\
+\bottomrule\end{tabularx}\end{center}
+Peer ratio improves precision over intensity by 10.8 percentage points (95\% group-bootstrap interval 6.0 to 15.2). Risk has the same hit count but represents more above-cutoff future volume. Gallons-above-expected also captures substantial volume while finding fewer elevated properties.
+
+For a team seeking to find more elevated properties per inspection, peer ratio is a strong default in this evaluation. For a team seeking to cover more reported above-cutoff gallons, the volume and risk policies deserve attention. Neither objective directly estimates repair cost, feasibility, or achievable savings, which would require additional outcome data.
+
+\subsection{Capacity and Follow-Up Sensitivity}
+At 5\% capacity, peer ratio finds 89 elevated reports in 93 reviews; at 20\%, it finds 184 in 369 reviews. The extra capacity raises recall while reducing precision. Candidates with and without follow-up have 2023 median intensities of 53.35 and 50.93 respectively; incomplete follow-up still prevents assuming that the matched evaluation represents all candidate properties.
+
+\newpage
+\section{Limitations, Use Cases, and Conclusion}
+\subsection{Operational Use and Transfer}
+A facilities team can use the electricity view to compare next-day demand expectations and the water queue to structure record or meter reviews. An elevated result should prompt checks of reporting completeness, meter scope, units, occupancy, and property-specific operations before intervention.
+
+A practical follow-up sequence is to verify the annual reporting period and units, confirm meter scope, compare occupancy and operations with the benchmark assumptions, and only then investigate a physical explanation. For electricity, an unexpected peak should similarly be interpreted alongside known schedules before changing operations.
+
+The analysis uses US datasets. An IIT Kanpur application requires local meter records, an appropriate benchmark, and validation for campus operations. Electricity test sites are represented in training, annual water disclosures are self-reported, and neither study measures the causal effect of an intervention.
+
+\subsection{Future Work}
+Next steps include testing new sites and later years, measuring sensitivity to missing data, adding local campus examples, and linking shortlists to confirmed audit outcomes. A prospective evaluation should record whether inspections identify actionable issues and whether subsequent changes produce independently verified savings.
+
+A prospective pilot could preserve the selected policy and capacity before reviewing the next reporting period, then record review completion, confirmed issues, and measured outcomes. Such a design would test the operational value of the queue beyond persistence in reported use. No outcome of that kind is claimed in the present report.
+
+\subsection{Conclusion}
+The project produces a working offline platform and reproducible comparisons for two facilities decisions. Ridge reduces electricity forecast error against the evaluated persistence baselines on the held-out cohort. Peer-adjusted water ranking improves property-level yield under a fixed budget, while volume-oriented ranking serves a different objective. The interface exposes these differences through inputs, checks, model comparisons, and exports.
+
+The evidence supports screening and investigation. Claims about confirmed faults, operational adoption, or savings require additional data. Together, the studies demonstrate a feasible shared platform while keeping the evaluation target and limits of each resource explicit.
+
+\subsection{Team}
+The project team comprises SHIVESH SHUKLA, AADITYA RATHI, and SIDDHANT SINGH. Individual contribution allocations are not asserted here because they should reflect the team's actual division of work.
+
+\newpage
+\section*{References}\addcontentsline{toc}{section}{References}
+\begin{enumerate}
+\item Miller, C. et al. (2020). The Building Data Genome Project 2, energy meter data from the ASHRAE Great Energy Predictor III competition. Scientific Data, 7, 368. \url{https://doi.org/10.1038/s41597-020-00712-x}
+\item BuildingsBench (2023). Building energy forecasting benchmark. NeurIPS Datasets and Benchmarks. \url{https://proceedings.neurips.cc/paper_files/paper/2023/file/3f17bf868966df01ca125e5bbc9ee24e-Paper-Datasets_and_Benchmarks.pdf}
+\item Wang and El-Gohary (2019). Machine Learning-Based Prediction of Building Water Consumption for Improving Building Water Efficiency. \url{https://doi.org/10.1061/9780784482445.018}
+\item Kontokosta and Jain (2015). Modeling the determinants of large-scale building water use. Sustainable Cities and Society. \url{https://doi.org/10.1016/j.scs.2015.05.007}
+\item U.S. Environmental Protection Agency. ENERGY STAR multifamily housing water score. \url{https://www.energystar.gov/buildings/resources-audience/multifamily-housing/water-score}
+\item NYC Open Data. NYC Building Energy and Water Data Disclosure, dataset 5zyy-y8am. \url{https://data.cityofnewyork.us/Environment/NYC-Building-Energy-and-Water-Data-Disclosure-for-/5zyy-y8am/about_data}
+\end{enumerate}\newpage
+\section*{Appendix A: Reproducibility and Inputs}\addcontentsline{toc}{section}{Appendix A: Reproducibility and Inputs}
+The companion ZIP includes the complete demo, exact datasets, three notebooks, editable source files, saved results, and sample upload CSVs. Open demo.html for the offline demo. See START\_HERE.md and data/DATA\_SOURCES.md for reproduction and provenance.
+\subsection*{Execution entry points}
+\begin{verbatim}
+python -m pip install -r requirements.txt
+python source/run_experiment.py electricity
+python source/run_experiment.py water
+python source/run_experiment.py priority
+python source/rebuild_demo.py
+\end{verbatim}
+\end{document}

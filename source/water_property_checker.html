@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Single-property water comparison</title>
+<style>__APP_STYLES__</style>
+</head>
+<body>
+<main class="property-check-main">
+  <p class="muted" style="margin-bottom:18px">Enter one property’s annual readings to compare reported use with an expected range.</p>
+  <div class="workspace-grid">
+    <section class="card input-card card-body" aria-labelledby="property-input-title">
+      <p class="section-label" id="property-input-title">Property details</p>
+      <p class="small muted">Try a bundled example</p>
+      <div class="actions property-samples" id="samples" aria-label="Bundled examples"></div>
+      <form id="water-form" class="stack">
+        <div><label class="block" for="units">Units</label><select id="units"><option value="us">US · ft² and gallons</option><option value="metric">Metric · m² and m³</option></select></div>
+        <div><label class="block" for="area">Gross floor area <span class="muted small" id="area-unit">ft²</span></label><input id="area" type="number" required min="0.000001" step="any"></div>
+        <div><label class="block" for="occupancy">Occupancy <span class="muted small">%</span></label><input id="occupancy" type="number" required min="0.000001" max="100" step="any"></div>
+        <div><label class="block" for="volume">Annual metered water <span class="muted small" id="volume-unit">US gallons</span></label><input id="volume" type="number" required min="0.000001" step="any"></div>
+        <label class="check"><input id="complete" type="checkbox"> The water total covers a full year and the same property as the floor area.</label>
+        <button class="primary" type="submit">Compare with expected use</button>
+        <p id="input-error" class="error" role="alert"></p>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="comparison-title">
+      <div class="card-header"><h2 id="comparison-title">Water-use comparison</h2></div>
+      <p id="result-prompt" class="table-note">Enter the property details or select an example to see its comparison.</p>
+      <div class="card-body stack" id="result" hidden aria-live="polite">
+        <p class="status" id="status"></p>
+        <dl class="comparison-metrics">
+          <div><dt>Reported use</dt><dd id="observed"></dd></div>
+          <div><dt>Expected use</dt><dd id="expected"></dd></div>
+          <div><dt>Times expected</dt><dd id="ratio"></dd></div>
+        </dl>
+        <p class="small muted" id="intensity-units"></p>
+        <svg id="plot" class="electric-chart" viewBox="0 0 540 126" role="img" aria-labelledby="plot-title">
+          <title id="plot-title">Reported water use and expected range</title>
+          <line x1="24" y1="64" x2="516" y2="64" stroke="#ccd5e3" stroke-width="2"/>
+          <rect id="range-band" y="51" height="26" rx="4" fill="#dce6ff"/>
+          <line id="expected-mark" y1="43" y2="84" stroke="#2454cd" stroke-width="3"/>
+          <circle id="observed-mark" cy="64" r="7" fill="#b17824" stroke="white" stroke-width="2"/>
+          <text x="24" y="27" fill="#59677c" font-size="13">■ Expected range　| Expected　● Reported</text>
+          <text x="24" y="105" fill="#59677c" font-size="13">0</text>
+          <text id="plot-max" x="516" y="105" text-anchor="end" fill="#59677c" font-size="13"></text>
+        </svg>
+        <p class="small muted" id="band-label"></p>
+        <div class="callout"><h3>What to check next</h3><p id="next-action"></p></div>
+        <p class="small quality" id="extrapolation" hidden></p>
+      </div>
+    </section>
+  </div>
+  <details class="evidence" open>
+    <summary>Individual benchmarking results</summary>
+    <div class="stack details-content">
+      <p class="small muted" id="evaluation-scope"></p>
+      <div class="tablewrap"><table><thead><tr><th scope="col">Method</th><th scope="col">Median absolute error</th><th scope="col">Mean absolute error</th></tr></thead><tbody id="evaluation-table"></tbody></table></div>
+      <p class="small muted" id="calibration"></p>
+      <p class="small muted">This checker uses the individual-property benchmark and its calibrated range. Portfolio ranking uses a separate benchmark fitted for the next-year review study.</p>
+    </div>
+  </details>
+</main>
+<script id="study-data" type="application/json">__STUDY_JSON__</script>
+<script>__PROPERTY_SCRIPT__</script>
+</body>
+</html>

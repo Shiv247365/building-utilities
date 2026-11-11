@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seven-Day Meter | CE 663</title>
+<style>__APP_STYLES__</style>
+</head>
+<body>
+<main class="module-main">
+  <header class="module-header">
+    <div><h1>Seven-Day Meter</h1><p class="muted">Forecast tomorrow’s electricity use from one week of hourly readings.</p></div>
+    <span class="status" id="meter-status">Awaiting input</span>
+  </header>
+  <ol class="workflow" aria-label="Electricity forecast steps">
+    <li id="meter-step-input" aria-current="step"><span>1</span>Add meter readings</li>
+    <li id="meter-step-generate"><span>2</span>Generate forecast</li>
+    <li id="meter-step-review"><span>3</span>Review results</li>
+  </ol>
+  <div class="workspace-grid">
+    <aside class="card input-card card-body" aria-labelledby="data-title">
+      <p class="section-label" id="data-title">1 · Add meter readings</p>
+      <div class="upload-area">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg>
+        <h3>Upload hourly electricity use</h3>
+        <p class="small muted">CSV · 168 hourly readings · one building</p>
+        <button type="button" class="primary" id="upload-meter">Upload electricity CSV</button>
+        <input type="file" id="meter-file" accept=".csv,text/csv" aria-label="Electricity CSV file" hidden>
+      </div>
+      <button type="button" id="load-sample" class="sample-button">Try sample data</button>
+      <p id="input-summary" class="input-status" aria-live="polite">No file selected</p>
+      <p id="upload-error" role="alert" class="error"></p>
+      <div id="sample-picker" class="sample-picker" hidden>
+        <label class="block" for="example">Sample building and date</label><select id="example"></select>
+      </div>
+      <details>
+        <summary>CSV format and sample file</summary>
+        <div class="details-content input-guide">
+          <p>Required columns are <code>timestamp</code> and <code>kwh</code>. Use hourly energy in kWh and local clock timestamps such as <code>2017-01-02 00:00:00</code>.</p>
+          <p>Include 168 consecutive hours, from midnight on day one to 23:00 on day seven. Use a week with a regular 24-hour clock grid.</p>
+          <button type="button" class="text-button" id="example-csv">Download sample CSV ↓</button>
+        </div>
+      </details>
+    </aside>
+    <section class="card" aria-labelledby="forecast-title">
+      <div class="card-header">
+        <div><h2 id="forecast-title">Next-day forecast</h2><p id="forecast-status" class="small muted" aria-live="polite">Add readings to get started.</p></div>
+        <button type="button" class="primary" id="forecast" disabled>Generate forecast</button>
+      </div>
+      <div class="empty-state" id="meter-empty">
+        <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18M5 16l5-6 4 3 6-8"/></svg></div>
+        <h3>Your next-day forecast will appear here</h3>
+        <p>Upload a week of readings or try sample data, then select Generate forecast.</p>
+      </div>
+      <div id="forecast-output" class="card-body" hidden>
+        <div class="forecast-actions"><h3 id="forecast-date"></h3><button type="button" id="reveal" hidden disabled>Show measured use</button></div>
+        <dl class="forecast-summary" id="peak-summary">
+          <div><dt>Forecast day total</dt><dd id="forecast-total"></dd></div>
+          <div><dt>Expected peak hour</dt><dd id="peak-window"></dd><small id="peak-demand"></small></div>
+        </dl>
+        <div id="legend" class="legend" aria-label="Chart series"></div>
+        <svg id="forecast-chart" class="electric-chart" viewBox="0 0 640 195" role="img" aria-label="Next-day hourly electricity forecast comparison"></svg>
+        <p class="callout" id="actual-note" hidden></p>
+        <details class="secondary" id="method-comparison" open>
+          <summary>Compare with yesterday and last week</summary>
+          <dl class="results details-content" id="forecast-metrics"></dl>
+        </details>
+      </div>
+      <details id="history-panel" open hidden>
+        <summary>View the seven days used for this forecast</summary>
+        <div class="details-content"><svg id="history-chart" class="electric-chart" viewBox="0 0 640 150" role="img" aria-label="Seven days of measured electricity in kWh per hour"></svg></div>
+      </details>
+    </section>
+  </div>
+  <details class="evidence" open>
+    <summary id="evaluation-title">Method comparison and validation results</summary>
+    <div class="stack details-content">
+      <p class="small muted" id="evaluation-scope"></p>
+      <div class="tablewrap" role="region" aria-label="Forecast evaluation table" tabindex="0"><table><thead><tr><th scope="col">Method</th><th scope="col">Average hourly error</th><th scope="col">Median normalized building error</th></tr></thead><tbody id="evaluation-table"></tbody></table></div>
+      <p class="small muted">The default was selected using 2016 validation buildings. Normalized error is absolute error divided by metered kWh, calculated per building.</p>
+    </div>
+  </details>
+  <footer class="module-footer"><span>Benchmark scope · Four BDG2 sites in the United States</span><span><a href="https://doi.org/10.1038/s41597-020-00712-x">BDG2 dataset ↗</a> · <a href="https://github.com/buds-lab/building-data-genome-project-2/blob/master/LICENSE">Licence ↗</a></span></footer>
+</main>
+<script id="meter-data" type="application/json">__METER_DATA__</script>
+<script>
+'use strict';
+const study = JSON.parse(document.getElementById('meter-data').textContent);
+const el = id => document.getElementById(id);
+const numeric = (value,digits=1) => new Intl.NumberFormat('en-US',{maximumFractionDigits:digits}).format(value);
+const mean = values => values.reduce((total,value)=>total+value,0)/values.length;
+const oneHour = 3600000;
+const hourLabel = hour => `${String(hour).padStart(2,'0')}:00`;
+const seriesStyles = [
+  {name:'Copy yesterday', color:'#b17824', dash:'8 5'},
+  {name:'Copy last week', color:'#8771b1', dash:'3 4'},
+  {name:'Forecast model', color:'#2454cd', dash:''},
+  {name:'Measured use', color:'#16816c', dash:''},
+];
+let activeCase = null, predictions = [], showingActual = false;
+
+function append(parent, tag, content) {
+  const node = document.createElement(tag);
+  node.textContent = content;
+  parent.append(node);
+  return node;
+}
+
+function timestamp(milliseconds) {
+  return new Date(milliseconds).toISOString().slice(0,19).replace('T',' ');
+}
+
+function parseClock(value) {
+  const match = value.match(/^(\d{4}-\d\d-\d\d)[ T](\d\d):00(?::00)?$/);
+  if (!match) return NaN;
+  // UTC is used only as a timezone-neutral representation of local clock labels.
+  const iso = `${match[1]}T${match[2]}:00:00`;
+  const time = Date.parse(iso+'Z');
+  return Number.isFinite(time) && new Date(time).toISOString().slice(0,19) === iso ? time : NaN;
+}
+
+function parseMeterCSV(text) {
+  const lines = text.replace(/^\uFEFF/,'').trim().split(/\r\n|\n|\r/);
+  const readRow = line => line.split(',').map(field => field.trim().replace(/^"([^"\r\n]*)"$/,'$1'));
+  const header = readRow(lines.shift() ?? '').map(field=>field.toLowerCase());
+  if (header.length !== 2 || !header.includes('timestamp') || !header.includes('kwh')) {
+    throw new Error('Use the columns timestamp and kwh. Download the example for the format.');
+  }
+  if (lines.length !== 168) throw new Error('Upload exactly 168 hourly readings for one building.');
+  const timestamps = [], history = [];
+  for (const [index,line] of lines.entries()) {
+    const row = readRow(line);
+    const clock = parseClock(row[header.indexOf('timestamp')] ?? '');
+    const value = row[header.indexOf('kwh')] ?? '';
+    const kwh = Number(value);
+    if (row.length !== 2 || !Number.isFinite(clock) || !/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value)
+        || !Number.isFinite(kwh) || kwh<0) throw new Error(`Check the hour and kWh value on CSV line ${index+2}.`);
+    if (index && clock-timestamps[index-1] !== oneHour) {
+      throw new Error(`CSV line ${index+2} breaks the consecutive hourly sequence.`);
+    }
+    timestamps.push(clock);
+    history.push(kwh);
+  }
+  const start = new Date(timestamps[0]);
+  if (start.getUTCHours() !== 0) throw new Error('Start at 00:00 so the forecast begins at midnight.');
+  if (!Number.isFinite(mean(history)) || mean(history) <= 0) throw new Error('The week needs a positive, finite average kWh reading.');
+  return {history,date:timestamp(timestamps[167]+oneHour).slice(0,10)};
+}
+
+function forecastDay(history, date) {
+  const scale = mean(history), yesterday = history.slice(-24), lastWeek = history.slice(0,24);
+  const weekday = (new Date(`${date}T00:00:00Z`).getUTCDay()+6)%7;
+  const ridge = [];
+  for (let hour=0; hour<24; hour++) {
+    const features = [1];
+    for (let lag=1; lag<=7; lag++) features.push(history[168+hour-24*lag]/scale);
+    features.push(mean(yesterday)/scale);
+    for (let slot=1; slot<24; slot++) features.push(Number(hour===slot));
+    for (let day=1; day<7; day++) features.push(Number(weekday===day));
+    const normalized = features.reduce((sum,value,index)=>sum+value*study.weights[index],0);
+    ridge.push(Math.max(0,normalized*scale));
+  }
+  return [yesterday,lastWeek,ridge];
+}
+
+function svgNode(svg, name, attributes, content='') {
+  const child = document.createElementNS('http://www.w3.org/2000/svg',name);
+  for (const [key,value] of Object.entries(attributes)) child.setAttribute(key,value);
+  child.textContent = content;
+  svg.append(child);
+}
+
+function drawChart(svg, lines, height, ticks, highlight=-1) {
+  svg.replaceChildren();
+  const peak = Math.max(1,...lines.flatMap(line=>line.values));
+  const maximum = Number.isFinite(peak*1.08) ? peak*1.08 : peak;
+  const points = lines[0].values.length;
+  const left=59, right=609, top=14, bottom=height-29;
+  const x = index=>left+(right-left)*index/(points-1);
+  const y = value=>bottom-(bottom-top)*(value/maximum);
+  for (let step=0; step<=3; step++) {
+    const level = maximum*(step/3);
+    svgNode(svg,'line',{x1:left,x2:right,y1:y(level),y2:y(level),stroke:'#e4eaf3'});
+    svgNode(svg,'text',{x:left-6,y:y(level)+4,'text-anchor':'end','font-size':12,fill:'#59677c'},numeric(level,1));
+  }
+  for (const [index,label] of ticks) svgNode(svg,'text',{x:x(index),y:height-9,'text-anchor':'middle','font-size':12,fill:'#465c66'},label);
+  if (highlight>=0) svgNode(svg,'line',{x1:x(highlight),x2:x(highlight),y1:top,y2:bottom,stroke:'#ad5c20','stroke-width':1.5,'stroke-dasharray':'4 4'});
+  for (const line of lines) {
+    svgNode(svg,'polyline',{points:line.values.map((value,index)=>`${x(index)},${y(value)}`).join(' '),fill:'none',
+      stroke:line.color,'stroke-width':2,'stroke-dasharray':line.dash ?? ''});
+  }
+}
+
+function setMeterStep(current) {
+  const steps = ['meter-step-input', 'meter-step-generate', 'meter-step-review'];
+  for (const [index, id] of steps.entries()) {
+    el(id).setAttribute('data-complete', String(index < current));
+    if (index === current) el(id).setAttribute('aria-current', 'step');
+    else el(id).removeAttribute('aria-current');
+  }
+}
+
+function loadCase(item) {
+  activeCase = item;
+  predictions = [];
+  showingActual = false;
+  el('forecast').disabled = false;
+  el('forecast-output').hidden = true;
+  el('meter-empty').hidden = false;
+  el('history-panel').hidden = false;
+  el('reveal').hidden = true;
+  el('reveal').disabled = true;
+  el('reveal').textContent = 'Show measured use';
+  el('upload-error').textContent = '';
+  const buildingName = item.site ? `${item.site} · ${item.building.split('_').at(-1)}` : item.building;
+  el('input-summary').textContent = `${buildingName} · 168 readings · forecast for ${item.date}.`;
+  el('forecast-status').textContent = `Readings ready. Forecast date ${item.date}.`;
+  el('meter-status').textContent = item.actual ? 'Sample data' : 'CSV loaded';
+  el('meter-status').setAttribute('data-ready', 'true');
+  el('sample-picker').hidden = !item.actual;
+  setMeterStep(1);
+  const start = parseClock(`${item.date} 00:00`)-168*oneHour;
+  const ticks = Array.from({length:7},(_,day)=>[day*24,timestamp(start+day*24*oneHour).slice(5,10)]);
+  drawChart(el('history-chart'),[{values:item.history,color:'#2454cd'}],150,ticks);
+}
+
+function displayForecast() {
+  const comparing = el('method-comparison').open;
+  const lines = predictions.flatMap((values,index)=>comparing || index === study.default ? [{...seriesStyles[index],values}] : []);
+  const defaultValues = predictions[study.default];
+  const peak = Math.max(...defaultValues);
+  const peakHour = defaultValues.indexOf(peak);
+  const endHour = peakHour === 23 ? '00:00 next day' : hourLabel(peakHour+1);
+  const total = defaultValues.reduce((sum,value)=>sum+value,0);
+  el('forecast-total').textContent = `${numeric(total)} kWh`;
+  el('peak-window').textContent = `${hourLabel(peakHour)}–${endHour}`;
+  el('peak-demand').textContent = `${numeric(peak)} kWh during this hour`;
+  let largestErrorHour = -1;
+  if (showingActual) {
+    lines.push({...seriesStyles[3],values:activeCase.actual});
+    const difference = activeCase.actual.map((value,index)=>Math.abs(value-predictions[study.default][index]));
+    largestErrorHour = difference.indexOf(Math.max(...difference));
+    el('actual-note').textContent = `Largest error for the default forecast at ${hourLabel(largestErrorHour)} · ${numeric(difference[largestErrorHour])} kWh. Measured day total ${numeric(activeCase.actual.reduce((sum,value)=>sum+value,0))} kWh.`;
+  }
+  el('actual-note').hidden = !showingActual;
+  el('meter-empty').hidden = true;
+  el('forecast-output').hidden = false;
+  el('forecast-date').textContent = `Hourly forecast · ${activeCase.date}`;
+  setMeterStep(2);
+  el('legend').replaceChildren();
+  for (const line of lines) {
+    const label = append(el('legend'),'span',line.name);
+    const mark = document.createElement('b');
+    mark.style.color = line.color;
+    mark.textContent = line.dash ? '┄' : '━';
+    label.prepend(mark);
+  }
+  const ticks = [0,4,8,12,16,20,23].map(hour=>[hour,hourLabel(hour)]);
+  drawChart(el('forecast-chart'),lines,195,ticks,largestErrorHour);
+  el('forecast-metrics').replaceChildren();
+  for (const [index,values] of predictions.entries()) {
+    const item = append(el('forecast-metrics'),'div','');
+    if (index === study.default) item.className = 'recommended';
+    append(item,'dt',seriesStyles[index].name);
+    const total = values.reduce((sum,value)=>sum+value,0);
+    const error = showingActual ? mean(values.map((value,hour)=>Math.abs(value-activeCase.actual[hour]))) : null;
+    append(item,'dd',`${numeric(total)} kWh for the day`);
+    if (error!==null) append(item,'p',`Average hourly error ${numeric(error,2)} kWh`).className='small muted';
+  }
+}
+
+for (const [index,item] of study.cases.entries()) {
+  append(el('example'),'option',`${item.site} · ${item.building.split('_').at(-1)} · ${item.date}`).value=String(index);
+}
+append(el('example'),'option','Uploaded meter CSV').value='upload';
+el('example').lastElementChild.hidden = true;
+el('example').value = '0';
+el('upload-meter').addEventListener('click', () => el('meter-file').click());
+el('load-sample').addEventListener('click', () => {
+  el('meter-file').value = '';
+  el('example').value = '0';
+  el('example').lastElementChild.hidden = true;
+  loadCase(study.cases[0]);
+});
+el('example').addEventListener('change',()=>{
+  if (el('example').value==='upload') return;
+  el('meter-file').value = '';
+  el('example').lastElementChild.hidden = true;
+  loadCase(study.cases[Number(el('example').value)]);
+});
+el('meter-file').addEventListener('change',async event=>{
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    if (file.size>1000000) throw new Error('The upload must be a seven-day meter CSV under 1 MB.');
+    const parsed = parseMeterCSV(await file.text());
+    if (event.target.files?.[0]!==file) return;
+    el('example').lastElementChild.hidden = false;
+    el('example').value = 'upload';
+    loadCase({...parsed,building:file.name});
+  } catch (error) {
+    if (event.target.files?.[0] === file) {
+      el('upload-error').textContent = `${file.name} could not be loaded. ${error.message}`;
+    }
+  }
+});
+el('example-csv').addEventListener('click',()=>{
+  const example=study.cases[0], start=parseClock(`${example.date} 00:00`)-168*oneHour;
+  const rows=example.history.map((value,index)=>`${timestamp(start+index*oneHour)},${value}`);
+  const content=['timestamp,kwh',...rows].join('\r\n');
+  const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));
+  const link=document.createElement('a');
+  link.href=url; link.download='seven_day_meter_example.csv'; link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+el('forecast').addEventListener('click',()=>{
+  if (!activeCase) return;
+  predictions = forecastDay(activeCase.history,activeCase.date);
+  if (!predictions.every(values=>values.every(Number.isFinite) && Number.isFinite(values.reduce((sum,value)=>sum+value,0)))) {
+    el('forecast-status').textContent='These readings are outside the range the forecast can display.';
+    return;
+  }
+  el('reveal').hidden = !activeCase.actual;
+  el('reveal').disabled = !activeCase.actual;
+  el('forecast-status').textContent = 'Forecast ready.';
+  displayForecast();
+});
+el('reveal').addEventListener('click',()=>{
+  if (!activeCase.actual || !predictions.length) return;
+  showingActual = !showingActual;
+  el('reveal').textContent = showingActual ? 'Hide measured use' : 'Show measured use';
+  el('forecast-status').textContent = showingActual
+    ? 'The chart now includes measured use.'
+    : 'Forecast ready.';
+  displayForecast();
+});
+el('method-comparison').addEventListener('toggle',()=>{
+  if (predictions.length && !el('forecast-output').hidden) displayForecast();
+});
+el('evaluation-scope').textContent=`${numeric(study.testBuildings,0)} buildings and ${numeric(study.testDays,0)} complete next-day forecasts across four sites. The same days were used for all three methods.`;
+for (const [index,name] of study.methods.entries()) {
+  const row=append(el('evaluation-table'),'tr','');
+  append(row,'td',index===study.default?`${name} · default`:name).className=index===study.default?'recommended':'';
+  append(row,'td',`${numeric(study.testMae[index],2)} kWh`);
+  append(row,'td',`${numeric(study.testMedian[index]*100,2)}%`);
+}
+setMeterStep(0);
+</script>
+</body>
+</html>
